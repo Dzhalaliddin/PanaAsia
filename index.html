@@ -420,7 +420,7 @@
 
   let currentLang = "ru";
 
-  /* === ССЫЛКИ 2ГИС — открываются и в приложении, и в браузере === */
+  /* === ССЫЛКИ 2ГИС === */
   const GIS_LINKS = {
     kainar:        "https://2gis.kz/shymkent/firm/70000001026514225/tab/reviews/addreview",
     ayusai:        "https://2gis.kz/almaty/firm/70000001095525547/tab/reviews/addreview",
@@ -517,10 +517,12 @@
     const t = TRANSLATIONS[currentLang];
 
     if (rating <= 3) {
+      // 1–3 звезды → WhatsApp
       const text = t.waText(hotelName, rating);
       window.location.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
     } else {
-      window.location.href = GIS_LINKS[selectedHotel];
+      // 4–5 звёзд → 2ГИС в браузере (новая вкладка)
+      window.open(GIS_LINKS[selectedHotel], "_blank", "noopener,noreferrer");
     }
   });
 

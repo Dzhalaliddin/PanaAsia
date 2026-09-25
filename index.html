@@ -19,14 +19,12 @@
     --text-light: #9a9a9a;
     --border: #ececec;
     --surface: #ffffff;
-    --surface-soft: #fafafa;
   }
 
   html, body { height: 100%; }
 
   body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    /* Фон в фирменных цветах PANA: коралловый с мягким переходом */
     background: linear-gradient(160deg, #f07a66 0%, #e2543f 45%, #c8402d 100%);
     min-height: 100vh;
     display: flex;
@@ -37,7 +35,6 @@
     overflow-x: hidden;
   }
 
-  /* Лёгкое световое пятно сверху */
   body::before {
     content: '';
     position: fixed;
@@ -71,37 +68,54 @@
     to   { opacity: 1; transform: translateY(0) scale(1); }
   }
 
+  /* === ПЕРЕКЛЮЧАТЕЛЬ ЯЗЫКА === */
+  .lang-switch {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    display: flex;
+    gap: 2px;
+    background: #f4f4f4;
+    border-radius: 10px;
+    padding: 3px;
+    z-index: 2;
+  }
+
+  .lang-btn {
+    font-family: inherit;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: .3px;
+    padding: 6px 10px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-mid);
+    cursor: pointer;
+    transition: all .2s;
+  }
+
+  .lang-btn:hover { color: var(--pana-coral); }
+
+  .lang-btn.active {
+    background: #fff;
+    color: var(--pana-coral);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  }
+
   .header { text-align: center; margin-bottom: 22px; }
 
-  /* Логотип pana */
   .logo {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
     margin-bottom: 18px;
   }
 
-  .logo-mark {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    background: linear-gradient(160deg, var(--pana-coral-soft), var(--pana-coral));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 6px 16px rgba(226,84,63,0.35);
-    flex-shrink: 0;
-  }
-
-  .logo-mark svg { width: 24px; height: 24px; }
-
-  .logo-text {
-    font-size: 26px;
-    font-weight: 700;
-    letter-spacing: -1px;
-    color: var(--text-dark);
-    font-family: 'Inter', sans-serif;
+  .logo-img {
+    width: 110px;
+    height: auto;
+    display: block;
   }
 
   .header h1 {
@@ -287,32 +301,34 @@
   @media (max-width: 480px) {
     .card { padding: 28px 22px 24px; border-radius: 22px; }
     .header h1 { font-size: 23px; }
-    .logo-text { font-size: 23px; }
-    .logo-mark { width: 36px; height: 36px; border-radius: 10px; }
+    .logo-img { width: 95px; }
     .star { font-size: 38px; }
     .hotel-item { padding: 14px 15px; font-size: 14.5px; }
+    .lang-switch { top: 12px; right: 12px; }
+    .lang-btn { padding: 5px 8px; font-size: 11px; }
   }
 </style>
 </head>
 <body>
 
 <div class="card">
+  <div class="lang-switch">
+    <button class="lang-btn" data-lang="kz">ҚАЗ</button>
+    <button class="lang-btn active" data-lang="ru">РУС</button>
+    <button class="lang-btn" data-lang="en">ENG</button>
+  </div>
+
   <div class="header">
     <div class="logo">
-      <span class="logo-mark">
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M4 10.5L12 4L20 10.5V19C20 19.55 19.55 20 19 20H15V14H9V20H5C4.45 20 4 19.55 4 19V10.5Z" fill="#ffffff"/>
-        </svg>
-      </span>
-      <span class="logo-text">pana</span>
+      <img src="logo.png" alt="PANA" class="logo-img">
     </div>
-    <h1>Оцените ваш отдых</h1>
-    <p>Выберите отель и поставьте оценку</p>
+    <h1 data-i18n="title">Оцените ваш отдых</h1>
+    <p data-i18n="subtitle">Выберите отель и поставьте оценку</p>
   </div>
 
   <div class="divider"></div>
 
-  <p class="section-label">Выберите отель</p>
+  <p class="section-label" data-i18n="chooseHotel">Выберите отель</p>
 
   <div class="hotel-list" id="hotelList">
     <button class="hotel-item" data-key="kainar">
@@ -343,7 +359,7 @@
 
   <div class="rating-block" id="ratingBlock">
     <div class="rating-inner">
-      <p class="section-label">Ваша оценка</p>
+      <p class="section-label" data-i18n="yourRating">Ваша оценка</p>
       <div class="stars" id="stars">
         <button class="star" data-value="1">★</button>
         <button class="star" data-value="2">★</button>
@@ -351,16 +367,64 @@
         <button class="star" data-value="4">★</button>
         <button class="star" data-value="5">★</button>
       </div>
-      <p class="hint" id="hint">Нажмите на звезду</p>
+      <p class="hint" id="hint" data-i18n="hint">Нажмите на звезду</p>
 
-      <button class="btn" id="submit" disabled>Отправить</button>
+      <button class="btn" id="submit" disabled data-i18n="submit">Отправить</button>
     </div>
   </div>
 
-  <p class="note">Спасибо, что помогаете нам стать лучше</p>
+  <p class="note" data-i18n="note">Спасибо, что помогаете нам стать лучше</p>
 </div>
 
 <script>
+  /* === ПЕРЕВОДЫ === */
+  const TRANSLATIONS = {
+    ru: {
+      title: "Оцените ваш отдых",
+      subtitle: "Выберите отель и поставьте оценку",
+      chooseHotel: "Выберите отель",
+      yourRating: "Ваша оценка",
+      hint: "Нажмите на звезду",
+      submit: "Отправить",
+      note: "Спасибо, что помогаете нам стать лучше",
+      ratingSet: (n) => `Вы поставили ${n} ${pluralRu(n)}`,
+      plural: (n) => pluralRu(n),
+      waText: (hotel, n) => `Здравствуйте! Я гость отеля ${hotel}. Моя оценка: ${n} из 5. Хочу оставить отзыв/замечание.`
+    },
+    kz: {
+      title: "Демалысыңызды бағалаңыз",
+      subtitle: "Қонақүйді таңдап, баға қойыңыз",
+      chooseHotel: "Қонақүйді таңдаңыз",
+      yourRating: "Сіздің бағаңыз",
+      hint: "Жұлдызға басыңыз",
+      submit: "Жіберу",
+      note: "Бізді жақсартуға көмектескеніңізге рақмет",
+      ratingSet: (n) => `Сіз ${n} жұлдыз қойдыңыз`,
+      plural: () => "",
+      waText: (hotel, n) => `Сәлеметсіз бе! Мен ${hotel} қонақүйінің қонағымын. Менің бағам: 5-тен ${n}. Пікір/ескерту қалдырғым келеді.`
+    },
+    en: {
+      title: "Rate your stay",
+      subtitle: "Choose a hotel and leave your rating",
+      chooseHotel: "Choose a hotel",
+      yourRating: "Your rating",
+      hint: "Tap a star",
+      submit: "Submit",
+      note: "Thank you for helping us improve",
+      ratingSet: (n) => `You rated ${n} ${n === 1 ? "star" : "stars"}`,
+      plural: () => "",
+      waText: (hotel, n) => `Hello! I am a guest of ${hotel}. My rating: ${n} out of 5. I would like to leave feedback.`
+    }
+  };
+
+  function pluralRu(n) {
+    if (n === 1) return "звезду";
+    if (n >= 2 && n <= 4) return "звезды";
+    return "звёзд";
+  }
+
+  let currentLang = "ru";
+
   const GIS_LINKS = {
     kainar:        "https://2gis.kz/shymkent/firm/70000001026514225/tab/reviews/addreview?m=69.630192%2C42.386431%2F18.52",
     ayusai:        "https://2gis.kz/almaty/firm/70000001095525547/tab/reviews/addreview",
@@ -390,6 +454,38 @@
   let selectedHotel = null;
   let rating = 0;
 
+  /* === ПЕРЕКЛЮЧАТЕЛЬ ЯЗЫКА === */
+  const langButtons = document.querySelectorAll(".lang-btn");
+
+  langButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      currentLang = btn.dataset.lang;
+      langButtons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      applyLanguage();
+    });
+  });
+
+  function applyLanguage() {
+    const t = TRANSLATIONS[currentLang];
+
+    document.querySelectorAll("[data-i18n]").forEach(el => {
+      const key = el.dataset.i18n;
+      if (t[key]) el.textContent = t[key];
+    });
+
+    // Обновить подпись под звёздами, если уже выбрана оценка
+    if (rating > 0) {
+      hint.textContent = t.ratingSet(rating);
+    } else {
+      hint.textContent = t.hint;
+    }
+
+    // Обновить lang у html
+    document.documentElement.lang = currentLang === "kz" ? "kk" : currentLang;
+  }
+
+  /* === ВЫБОР ОТЕЛЯ === */
   hotelItems.forEach(item => {
     item.addEventListener("click", () => {
       hotelItems.forEach(i => i.classList.remove("selected"));
@@ -400,11 +496,12 @@
     });
   });
 
+  /* === ЗВЁЗДЫ === */
   stars.forEach(star => {
     star.addEventListener("click", () => {
       rating = parseInt(star.dataset.value, 10);
       updateStars(rating);
-      hint.textContent = `Вы поставили ${rating} ${plural(rating)}`;
+      hint.textContent = TRANSLATIONS[currentLang].ratingSet(rating);
       hint.classList.add("filled");
       checkReady();
     });
@@ -419,27 +516,26 @@
     });
   }
 
-  function plural(n) {
-    if (n === 1) return "звезду";
-    if (n >= 2 && n <= 4) return "звезды";
-    return "звёзд";
-  }
-
   function checkReady() {
     submitBtn.disabled = !(selectedHotel && rating > 0);
   }
 
+  /* === ОТПРАВКА === */
   submitBtn.addEventListener("click", () => {
     if (!selectedHotel || !rating) return;
     const hotelName = HOTEL_NAMES[selectedHotel];
+    const t = TRANSLATIONS[currentLang];
 
     if (rating <= 3) {
-      const text = `Здравствуйте! Я гость отеля ${hotelName}. Моя оценка: ${rating} из 5. Хочу оставить отзыв/замечание.`;
+      const text = t.waText(hotelName, rating);
       window.location.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
     } else {
       window.location.href = GIS_LINKS[selectedHotel];
     }
   });
+
+  /* Инициализация */
+  applyLanguage();
 </script>
 
 </body>

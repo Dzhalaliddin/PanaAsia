@@ -68,7 +68,6 @@
     to   { opacity: 1; transform: translateY(0) scale(1); }
   }
 
-  /* === ПЕРЕКЛЮЧАТЕЛЬ ЯЗЫКА === */
   .lang-switch {
     position: absolute;
     top: 16px;
@@ -377,7 +376,6 @@
 </div>
 
 <script>
-  /* === ПЕРЕВОДЫ === */
   const TRANSLATIONS = {
     ru: {
       title: "Оцените ваш отдых",
@@ -388,7 +386,6 @@
       submit: "Отправить",
       note: "Спасибо, что помогаете нам стать лучше",
       ratingSet: (n) => `Вы поставили ${n} ${pluralRu(n)}`,
-      plural: (n) => pluralRu(n),
       waText: (hotel, n) => `Здравствуйте! Я гость отеля ${hotel}. Моя оценка: ${n} из 5. Хочу оставить отзыв/замечание.`
     },
     kz: {
@@ -400,7 +397,6 @@
       submit: "Жіберу",
       note: "Бізді жақсартуға көмектескеніңізге рақмет",
       ratingSet: (n) => `Сіз ${n} жұлдыз қойдыңыз`,
-      plural: () => "",
       waText: (hotel, n) => `Сәлеметсіз бе! Мен ${hotel} қонақүйінің қонағымын. Менің бағам: 5-тен ${n}. Пікір/ескерту қалдырғым келеді.`
     },
     en: {
@@ -412,7 +408,6 @@
       submit: "Submit",
       note: "Thank you for helping us improve",
       ratingSet: (n) => `You rated ${n} ${n === 1 ? "star" : "stars"}`,
-      plural: () => "",
       waText: (hotel, n) => `Hello! I am a guest of ${hotel}. My rating: ${n} out of 5. I would like to leave feedback.`
     }
   };
@@ -425,8 +420,9 @@
 
   let currentLang = "ru";
 
+  /* === ССЫЛКИ 2ГИС — сразу на форму добавления отзыва, без ?m=... === */
   const GIS_LINKS = {
-    kainar:        "https://2gis.kz/shymkent/firm/70000001026514225/tab/reviews/addreview?m=69.630192%2C42.386431%2F18.52",
+    kainar:        "https://2gis.kz/shymkent/firm/70000001026514225/tab/reviews/addreview",
     ayusai:        "https://2gis.kz/almaty/firm/70000001095525547/tab/reviews/addreview",
     nomad_kolsay:  "https://2gis.kz/almaty/firm/70000001095525626/tab/reviews/addreview",
     unique_charyn: "https://2gis.kz/almaty/firm/70000001114038277/tab/reviews/addreview",
@@ -454,7 +450,6 @@
   let selectedHotel = null;
   let rating = 0;
 
-  /* === ПЕРЕКЛЮЧАТЕЛЬ ЯЗЫКА === */
   const langButtons = document.querySelectorAll(".lang-btn");
 
   langButtons.forEach(btn => {
@@ -474,18 +469,15 @@
       if (t[key]) el.textContent = t[key];
     });
 
-    // Обновить подпись под звёздами, если уже выбрана оценка
     if (rating > 0) {
       hint.textContent = t.ratingSet(rating);
     } else {
       hint.textContent = t.hint;
     }
 
-    // Обновить lang у html
     document.documentElement.lang = currentLang === "kz" ? "kk" : currentLang;
   }
 
-  /* === ВЫБОР ОТЕЛЯ === */
   hotelItems.forEach(item => {
     item.addEventListener("click", () => {
       hotelItems.forEach(i => i.classList.remove("selected"));
@@ -496,7 +488,6 @@
     });
   });
 
-  /* === ЗВЁЗДЫ === */
   stars.forEach(star => {
     star.addEventListener("click", () => {
       rating = parseInt(star.dataset.value, 10);
@@ -520,7 +511,6 @@
     submitBtn.disabled = !(selectedHotel && rating > 0);
   }
 
-  /* === ОТПРАВКА === */
   submitBtn.addEventListener("click", () => {
     if (!selectedHotel || !rating) return;
     const hotelName = HOTEL_NAMES[selectedHotel];
@@ -534,7 +524,6 @@
     }
   });
 
-  /* Инициализация */
   applyLanguage();
 </script>
 

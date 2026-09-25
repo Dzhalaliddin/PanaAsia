@@ -420,8 +420,18 @@
 
   let currentLang = "ru";
 
-  /* === ССЫЛКИ 2ГИС === */
-  const GIS_LINKS = {
+  /* === ССЫЛКИ 2ГИС ДЛЯ МОБИЛЬНЫХ (карточка отеля) === */
+  const GIS_LINKS_MOBILE = {
+    kainar:        "https://2gis.kz/shymkent/firm/70000001026514225",
+    ayusai:        "https://2gis.kz/almaty/firm/70000001095525547",
+    nomad_kolsay:  "https://2gis.kz/almaty/firm/70000001095525626",
+    unique_charyn: "https://2gis.kz/almaty/firm/70000001114038277",
+    unique_semey:  "https://2gis.kz/semej/firm/70000001106039532",
+    unique_kolsay: "https://2gis.kz/almaty/firm/70000001114248247"
+  };
+
+  /* === ССЫЛКИ 2ГИС ДЛЯ ВЕБ (форма отзыва) === */
+  const GIS_LINKS_DESKTOP = {
     kainar:        "https://2gis.kz/shymkent/firm/70000001026514225/tab/reviews/addreview",
     ayusai:        "https://2gis.kz/almaty/firm/70000001095525547/tab/reviews/addreview",
     nomad_kolsay:  "https://2gis.kz/almaty/firm/70000001095525626/tab/reviews/addreview",
@@ -440,6 +450,12 @@
   };
 
   const WHATSAPP_NUMBER = "77018615121";
+
+  /* === ОПРЕДЕЛЕНИЕ МОБИЛЬНОГО УСТРОЙСТВА === */
+  function isMobile() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+      || (window.matchMedia && window.matchMedia("(max-width: 768px)").matches);
+  }
 
   const hotelItems = document.querySelectorAll(".hotel-item");
   const ratingBlock = document.getElementById("ratingBlock");
@@ -521,8 +537,14 @@
       const text = t.waText(hotelName, rating);
       window.location.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
     } else {
-      // 4–5 звёзд → 2ГИС в браузере (новая вкладка)
-      window.open(GIS_LINKS[selectedHotel], "_blank", "noopener,noreferrer");
+      // 4–5 звёзд → 2ГИС
+      if (isMobile()) {
+        // На телефоне — карточка отеля (откроется в приложении)
+        window.location.href = GIS_LINKS_MOBILE[selectedHotel];
+      } else {
+        // На компьютере — сразу форма отзыва в браузере
+        window.open(GIS_LINKS_DESKTOP[selectedHotel], "_blank", "noopener,noreferrer");
+      }
     }
   });
 

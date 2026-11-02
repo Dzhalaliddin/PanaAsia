@@ -3,552 +3,1282 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Оцените ваш отдых</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<title>Дашборд отзывов — PANA Hotels</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
   :root {
-    --pana-coral: #e2543f;
-    --pana-coral-soft: #f07a66;
-    --pana-cream: #fdf3ef;
-    --text-dark: #1a1a1a;
-    --text-mid: #5a5a5a;
-    --text-light: #9a9a9a;
-    --border: #ececec;
-    --surface: #ffffff;
+    --primary: #0f2a4a;
+    --primary-light: #1a3c66;
+    --gold: #c9a227;
+    --gold-light: #e8b74a;
+    --green: #2e9e5b;
+    --red: #d9534f;
+    --yellow: #e6a817;
+    --blue: #3d8fbf;
+    --text: #1a2233;
+    --text-dim: #5a6a80;
+    --text-mute: #8a96a8;
   }
-
-  html, body { height: 100%; }
 
   body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: linear-gradient(160deg, #f07a66 0%, #e2543f 45%, #c8402d 100%);
+    font-family: 'Segoe UI', Calibri, system-ui, sans-serif;
+    background: #f5f5f5;
+    padding: 15px;
+    font-size: 12px;
+    color: var(--text);
     min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px 16px;
-    position: relative;
-    overflow-x: hidden;
   }
 
-  body::before {
-    content: '';
-    position: fixed;
-    top: -25%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 700px;
-    height: 700px;
-    background: radial-gradient(circle, rgba(255,255,255,0.22) 0%, transparent 65%);
-    pointer-events: none;
-    z-index: 0;
-  }
+  .container { max-width: 1500px; margin: 0 auto; }
+  h1 { font-size: 20px; color: var(--primary); margin-bottom: 12px; font-weight: 700; letter-spacing: .3px; }
 
-  .card {
-    position: relative;
-    z-index: 1;
-    background: var(--surface);
-    color: var(--text-dark);
-    border-radius: 26px;
-    padding: 34px 32px 30px;
-    max-width: 500px;
-    width: 100%;
-    box-shadow:
-      0 30px 80px rgba(140, 40, 25, 0.35),
-      0 0 0 1px rgba(255,255,255,0.4);
-    animation: cardIn .7s cubic-bezier(.16,1,.3,1) both;
+  /* ── TABS ── */
+  .tabs {
+    display: flex; gap: 8px; margin-bottom: 16px;
+    padding: 5px;
+    background: rgba(15,42,74,0.04);
+    border: 1px solid rgba(15,42,74,0.08);
+    border-radius: 100px;
+    width: fit-content;
+    flex-wrap: wrap;
+    box-shadow: 0 2px 10px rgba(15,42,74,0.06);
   }
-
-  @keyframes cardIn {
-    from { opacity: 0; transform: translateY(24px) scale(.98); }
-    to   { opacity: 1; transform: translateY(0) scale(1); }
-  }
-
-  .lang-switch {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    display: flex;
-    gap: 2px;
-    background: #f4f4f4;
-    border-radius: 10px;
-    padding: 3px;
-    z-index: 2;
-  }
-
-  .lang-btn {
-    font-family: inherit;
-    font-size: 11.5px;
-    font-weight: 700;
-    letter-spacing: .3px;
-    padding: 6px 10px;
-    border: none;
-    border-radius: 8px;
+  .tab {
+    padding: 10px 24px;
     background: transparent;
-    color: var(--text-mid);
+    border: 1px solid transparent;
+    border-radius: 100px;
     cursor: pointer;
-    transition: all .2s;
-  }
-
-  .lang-btn:hover { color: var(--pana-coral); }
-
-  .lang-btn.active {
-    background: #fff;
-    color: var(--pana-coral);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-  }
-
-  .header { text-align: center; margin-bottom: 22px; }
-
-  .logo {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 18px;
-  }
-
-  .logo-img {
-    width: 180px;
-    height: auto;
-    display: block;
-  }
-
-  .header h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: 27px;
-    font-weight: 700;
-    line-height: 1.2;
-    color: var(--text-dark);
-    margin-bottom: 6px;
-  }
-
-  .header p {
-    font-size: 14px;
-    color: var(--text-mid);
-    line-height: 1.5;
-  }
-
-  .divider {
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--border), transparent);
-    margin: 22px 0;
-  }
-
-  .section-label {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 1.8px;
-    text-transform: uppercase;
-    color: var(--text-light);
-    margin-bottom: 14px;
-    text-align: center;
-  }
-
-  .hotel-list {
-    display: flex;
-    flex-direction: column;
-    gap: 9px;
-    margin-bottom: 24px;
-  }
-
-  .hotel-item {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 15px 18px;
-    border: 1.5px solid var(--border);
-    border-radius: 14px;
-    background: var(--surface);
-    cursor: pointer;
-    transition: all .25s cubic-bezier(.4,0,.2,1);
     font-family: inherit;
-    font-size: 15px;
     font-weight: 600;
-    color: var(--text-dark);
-    text-align: left;
-    width: 100%;
-    overflow: hidden;
-  }
-
-  .hotel-item:hover {
-    border-color: var(--pana-coral);
-    background: var(--pana-cream);
-    transform: translateX(3px);
-  }
-
-  .hotel-item .check {
-    flex-shrink: 0;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    border: 2px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    color: transparent;
-    transition: all .25s;
-  }
-
-  .hotel-item.selected {
-    border-color: var(--pana-coral);
-    background: var(--pana-cream);
-    box-shadow: 0 8px 24px rgba(226,84,63,0.18);
-    transform: translateX(0);
-  }
-
-  .hotel-item.selected .check {
-    background: var(--pana-coral);
-    border-color: var(--pana-coral);
-    color: #fff;
-  }
-
-  .rating-block {
-    opacity: 0;
-    max-height: 0;
-    overflow: hidden;
-    pointer-events: none;
-    transition: opacity .4s ease, max-height .5s ease;
-  }
-
-  .rating-block.enabled {
-    opacity: 1;
-    max-height: 500px;
-    pointer-events: auto;
-  }
-
-  .rating-inner { padding-top: 4px; }
-
-  .stars {
-    display: flex;
-    justify-content: center;
-    gap: 6px;
-    margin: 6px 0 10px;
+    font-size: 13px;
+    color: var(--text-dim);
     user-select: none;
+    transition: all .3s cubic-bezier(.4,0,.2,1);
   }
-
-  .star {
-    font-size: 42px;
-    line-height: 1;
-    cursor: pointer;
-    color: #e6e6e6;
-    background: none;
-    border: none;
-    padding: 4px;
-    transition: transform .18s cubic-bezier(.34,1.56,.64,1), color .2s;
-  }
-
-  .star:hover { transform: scale(1.18) translateY(-2px); }
-
-  .star.active {
-    color: #f5b800;
-    filter: drop-shadow(0 4px 8px rgba(245,184,0,0.35));
-  }
-
-  .hint {
-    text-align: center;
-    font-size: 13.5px;
-    color: var(--text-light);
-    min-height: 20px;
-    margin-bottom: 20px;
-    transition: color .2s;
-  }
-
-  .hint.filled { color: var(--pana-coral); font-weight: 600; }
-
-  .btn {
-    width: 100%;
-    padding: 16px;
-    font-family: inherit;
-    font-size: 15.5px;
-    font-weight: 700;
-    letter-spacing: .3px;
-    border: none;
-    border-radius: 14px;
-    background: linear-gradient(135deg, var(--pana-coral-soft), var(--pana-coral));
+  .tab:hover { color: var(--primary); background: rgba(15,42,74,0.05); }
+  .tab.active {
     color: #fff;
+    background: linear-gradient(135deg, #0f2a4a, #1a3c66);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.2),
+      0 4px 14px rgba(15,42,74,0.3);
+    transform: translateY(-1px);
+  }
+
+  .panel { display: none; }
+  .panel.active { display: block; animation: fadeIn .3s ease; }
+  @keyframes fadeIn { from { opacity:0; transform: translateY(6px); } to { opacity:1; transform: translateY(0); } }
+
+  /* ── STAT CARDS ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(195px, 1fr));
+    gap: 12px; margin-bottom: 16px;
+  }
+  .stat-card {
+    background: #fff; border-radius: 16px; padding: 16px 18px;
+    box-shadow: 0 2px 10px rgba(15,42,74,.06);
+    border-left: 4px solid var(--primary);
     cursor: pointer;
-    transition: all .25s cubic-bezier(.4,0,.2,1);
-    box-shadow: 0 8px 20px rgba(226,84,63,0.35);
+    transition: all .3s cubic-bezier(.4,0,.2,1);
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(circle at 30% 20%, rgba(15,42,74,0.05) 0%, transparent 45%);
+    opacity: 0;
+    transition: opacity .4s;
+    pointer-events: none;
+  }
+  .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(15,42,74,.13); }
+  .stat-card:hover::after { opacity: 1; }
+  .stat-card:active { transform: translateY(-1px) scale(.99); }
+  .stat-card .hint {
+    position: absolute; top: 10px; right: 10px;
+    font-size: 10px; color: #bbb; opacity: 0; transition: .15s;
+    font-weight: 600;
+  }
+  .stat-card:hover .hint { opacity: 1; }
+  .stat-card.negative { border-left-color: var(--red); }
+  .stat-card.positive { border-left-color: var(--green); }
+  .stat-card.warning  { border-left-color: var(--yellow); }
+  .stat-card.info     { border-left-color: var(--blue); }
+  .stat-card.gold     { border-left-color: var(--gold); }
+  .stat-icon {
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 10px;
+    background: rgba(15,42,74,0.06);
+    font-size: 15px;
+    margin-bottom: 10px;
+  }
+  .stat-title {
+    font-size: 10.5px; color: var(--text-dim); text-transform: uppercase;
+    letter-spacing: .6px; margin-bottom: 6px; font-weight: 700;
+  }
+  .stat-value { font-size: 26px; font-weight: 700; color: var(--primary); line-height: 1; }
+  .stat-card.negative .stat-value { color: var(--red); }
+  .stat-card.positive .stat-value { color: var(--green); }
+  .stat-card.warning  .stat-value { color: var(--yellow); }
+  .stat-card.info     .stat-value { color: var(--blue); }
+  .stat-card.gold     .stat-value { color: var(--gold); }
+  .stat-sub { font-size: 11px; color: var(--text-mute); margin-top: 5px; }
+
+  /* ── SECTION TITLE ── */
+  .section-title {
+    font-size: 14px; color: var(--primary); font-weight: 700;
+    margin: 22px 0 10px; padding-bottom: 7px;
+    border-bottom: 2px solid var(--gold);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title .badge {
+    background: var(--gold); color: #fff; font-size: 10px;
+    padding: 3px 10px; border-radius: 100px; font-weight: 700;
   }
 
-  .btn:not(:disabled):hover {
+  /* ── TREND CARDS ── */
+  .trend-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(440px, 1fr));
+    gap: 14px; margin-bottom: 16px;
+  }
+  .trend-card {
+    background: #fff; border-radius: 16px; padding: 18px 20px;
+    box-shadow: 0 2px 10px rgba(15,42,74,.06);
+  }
+  .trend-card h3 {
+    font-size: 13px; color: var(--primary); margin-bottom: 12px;
+    padding-bottom: 8px; border-bottom: 1px solid #e8ecf2;
+    display: flex; align-items: center; gap: 6px; font-weight: 700;
+  }
+  .trend-card h3 .note {
+    font-size: 11px; font-weight: 500; color: var(--text-mute);
+    margin-left: auto;
+  }
+
+  .trend-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .trend-table th {
+    font-size: 10.5px; color: var(--text-mute); text-transform: uppercase;
+    padding: 8px 10px; text-align: left; border-bottom: 1px solid #e8ecf2;
+    font-weight: 700; letter-spacing: .3px;
+  }
+  .trend-table td {
+    padding: 10px 10px; border-bottom: 1px solid #f2f5f9;
+    vertical-align: middle;
+  }
+  .trend-table tr:last-child td { border-bottom: none; }
+  .trend-table tr:hover td { background: #f7f9fc; }
+  .trend-table td.num { text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .trend-table td.loc { font-weight: 600; color: #2a3a55; }
+
+  .delta {
+    font-weight: 700; font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .delta.better  { color: var(--green); }
+  .delta.worse   { color: var(--red); }
+  .delta.neutral { color: var(--text-mute); }
+
+  .arrow { font-size: 12px; line-height: 1; }
+
+  .trend-badge {
+    display: inline-block;
+    padding: 4px 11px;
+    border-radius: 100px;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: .2px;
+    white-space: nowrap;
+  }
+  .trend-badge.better  { background: rgba(46,158,91,0.12);  color: var(--green); }
+  .trend-badge.worse   { background: rgba(217,83,79,0.12);  color: var(--red); }
+  .trend-badge.flat    { background: rgba(138,150,168,0.12); color: var(--text-mute); }
+
+  /* ── HOTEL CARDS ── */
+  .locations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px; margin-bottom: 16px;
+  }
+  .loc-card {
+    background: #fff; border-radius: 16px; padding: 14px 18px;
+    box-shadow: 0 2px 10px rgba(15,42,74,.06);
+    display: flex; justify-content: space-between; align-items: center;
+    cursor: pointer;
+    transition: all .3s cubic-bezier(.4,0,.2,1);
+    border-left: 4px solid var(--primary);
+    gap: 12px;
+  }
+  .loc-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(15,42,74,.13); }
+  .loc-card .loc-name { font-size: 13px; color: var(--text); font-weight: 700; }
+  .loc-card .loc-meta { font-size: 11px; color: var(--text-mute); margin-top: 5px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .loc-card .loc-meta .neg { color: var(--red); font-weight: 600; }
+  .loc-card .loc-meta .pos { color: var(--green); font-weight: 600; }
+
+  .loc-card .loc-rating-block { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+  .loc-card .loc-rating {
+    font-size: 20px; font-weight: 800;
+    color: var(--gold); line-height: 1;
+    display: flex; align-items: baseline; gap: 2px;
+    letter-spacing: -0.3px;
+  }
+  .loc-card .loc-rating .star { font-size: 14px; }
+  .loc-card .loc-rating.good { color: var(--green); }
+  .loc-card .loc-rating.mid  { color: var(--yellow); }
+  .loc-card .loc-rating.low  { color: var(--red); }
+  .loc-card .gis-rating { font-size: 10.5px; color: var(--text-mute); font-weight: 600; }
+  .loc-card .gis-rating b { color: var(--text-dim); }
+
+  /* ── BREAKDOWNS ── */
+  .breakdowns {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(285px, 1fr));
+    gap: 12px; margin-bottom: 16px;
+  }
+  .breakdown {
+    background: #fff; border-radius: 16px; padding: 16px 18px;
+    box-shadow: 0 2px 10px rgba(15,42,74,.06);
+  }
+  .breakdown h3 {
+    font-size: 12.5px; color: var(--primary); margin-bottom: 10px;
+    padding-bottom: 8px; border-bottom: 1px solid #e8ecf2; font-weight: 700;
+  }
+  .breakdown table { width: 100%; font-size: 12px; border-collapse: collapse; }
+  .breakdown td {
+    padding: 7px 6px; border-bottom: 1px solid #f2f5f9;
+    vertical-align: middle; cursor: pointer;
+  }
+  .breakdown tr:last-child td { border-bottom: none; }
+  .breakdown tr:hover td { background: #f0f5ff; }
+  .breakdown td:last-child {
+    text-align: right; font-weight: 700; color: var(--primary);
+    white-space: nowrap; font-variant-numeric: tabular-nums;
+  }
+  .bar {
+    display: inline-block; height: 8px; border-radius: 4px;
+    margin-right: 7px; vertical-align: middle; min-width: 3px;
+  }
+  .bar.negative { background: var(--red); }
+  .bar.positive { background: var(--green); }
+  .bar.warning  { background: var(--yellow); }
+  .bar.info     { background: var(--blue); }
+  .bar.gold     { background: var(--gold); }
+
+  /* ── FILTER BANNER ── */
+  .filter-banner {
+    display: none; padding: 11px 16px;
+    background: #fdf6e3;
+    border-left: 4px solid var(--gold);
+    border-radius: 12px; margin-bottom: 12px;
+    font-size: 13px; color: #7a5c00;
+    align-items: center; gap: 10px;
+    box-shadow: 0 2px 8px rgba(201,162,39,0.1);
+  }
+  .filter-banner.active { display: flex; }
+  .filter-banner strong { color: var(--primary); }
+  .filter-banner button {
+    margin-left: auto; padding: 6px 14px; font-size: 12px;
+    background: rgba(15,42,74,0.08);
+    color: var(--primary);
+    border: 1px solid rgba(15,42,74,0.15);
+    border-radius: 100px; cursor: pointer;
+    font-weight: 600; font-family: inherit;
+    transition: .2s;
+  }
+  .filter-banner button:hover { background: rgba(15,42,74,0.15); transform: translateY(-1px); }
+
+  /* ── GLASS BUTTONS ── */
+  .toolbar { margin-bottom: 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  button.btn-main {
+    padding: 11px 22px;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    color: #fff;
+    border: 1px solid rgba(201,162,39,0.5);
+    border-radius: 100px;
+    cursor: pointer;
+    font-size: 12.5px; font-weight: 700;
+    font-family: inherit;
+    transition: all .3s cubic-bezier(.4,0,.2,1);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.4),
+      0 4px 14px rgba(201,162,39,0.35);
+    position: relative;
+    overflow: hidden;
+  }
+  button.btn-main::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.45), transparent);
+    transition: left .5s;
+  }
+  button.btn-main:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 28px rgba(226,84,63,0.5);
-    background: linear-gradient(135deg, var(--pana-coral), #c8402d);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.5),
+      0 8px 24px rgba(201,162,39,0.5);
+  }
+  button.btn-main:hover::before { left: 100%; }
+  button.btn-main:active { transform: translateY(0) scale(.98); }
+
+  .counter {
+    margin-left: auto;
+    color: var(--primary);
+    font-size: 12.5px; font-weight: 600;
+    padding: 8px 18px;
+    background: #fff;
+    border-radius: 100px;
+    box-shadow: 0 2px 8px rgba(15,42,74,0.08);
   }
 
-  .btn:disabled {
-    opacity: .4;
-    cursor: not-allowed;
-    box-shadow: none;
+  /* ── TABLE ── */
+  .table-wrap {
+    max-height: 72vh; overflow: auto;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(15,42,74,0.08);
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  table#dataTable { border-collapse: collapse; width: max-content; min-width: 100%; }
+  #dataTable thead th {
+    position: sticky; top: 0;
+    background: var(--primary);
+    color: #fff;
+    padding: 11px 12px;
+    text-align: left; font-weight: 700;
+    white-space: nowrap; z-index: 10;
+    font-size: 10.5px; letter-spacing: .5px;
+    text-transform: uppercase;
+  }
+  #dataTable tbody td {
+    padding: 9px 12px;
+    border-bottom: 1px solid #eef2f7;
+    vertical-align: top; font-size: 12px;
+    line-height: 1.45; max-width: 380px;
+    word-wrap: break-word; white-space: pre-wrap;
+    color: var(--text);
+  }
+  #dataTable tbody tr { transition: background .15s; }
+  #dataTable tbody tr:hover td { background: #f7fafd; }
+  #dataTable tbody tr.negative td { background: #fff5f5; }
+  #dataTable tbody tr.negative:hover td { background: #ffe8e8; }
+  #dataTable tbody tr.positive td { background: #f3fcf6; }
+  #dataTable tbody tr.positive:hover td { background: #e4f8eb; }
+  #dataTable tbody tr.neutral td { background: #fffbef; }
+  #dataTable tbody tr.neutral:hover td { background: #fff5da; }
+
+  th.col-date,     td.col-date     { min-width: 95px; }
+  th.col-name,     td.col-name     { min-width: 140px; }
+  th.col-city,     td.col-city     { min-width: 90px; }
+  th.col-loc,      td.col-loc      { min-width: 160px; font-weight: 600; }
+  th.col-channel,  td.col-channel  { min-width: 70px; }
+  th.col-type,     td.col-type     { min-width: 120px; }
+  th.col-cat,      td.col-cat      { min-width: 160px; }
+  th.col-status,   td.col-status   { min-width: 130px; }
+  th.col-valid,    td.col-valid    { min-width: 130px; }
+  th.col-comp,     td.col-comp     { min-width: 130px; }
+  th.col-measures, td.col-measures { min-width: 160px; }
+  th.col-desc,     td.col-desc     { min-width: 340px; }
+  th.col-emp,      td.col-emp      { min-width: 100px; }
+  th.col-rating,   td.col-rating   { min-width: 70px; text-align: center; font-weight: 700; }
+  th.col-post,     td.col-post     { min-width: 140px; }
+  th.col-contact,  td.col-contact  { min-width: 150px; }
+  th.col-problem,  td.col-problem  { min-width: 180px; }
+  th.col-dec,      td.col-dec      { min-width: 360px; }
+
+  .badge-type {
+    display: inline-block; padding: 3px 10px;
+    border-radius: 100px; font-size: 10.5px;
+    font-weight: 700; text-transform: uppercase;
+    letter-spacing: .3px;
+  }
+  .badge-type.neg { background: #fde8e8; color: #b8332f; }
+  .badge-type.pos { background: #e3f6e9; color: #1f7a44; }
+  .badge-type.neu { background: #fdf3d9; color: #a67c00; }
+
+  .rating-star { color: var(--gold); font-weight: 800; }
+
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: #f5f5f5; }
+  ::-webkit-scrollbar-thumb {
+    background: #c8d0de; border-radius: 10px;
+    border: 2px solid #f5f5f5; background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: #a8b4c8; background-clip: padding-box; }
+
+  @media (max-width: 700px) {
+    body { padding: 10px; font-size: 11.5px; }
+    h1 { font-size: 16px; }
+    .stat-value { font-size: 22px; }
+    .trend-grid { grid-template-columns: 1fr; }
+    .tab { padding: 8px 16px; font-size: 12px; }
+    .counter { margin-left: 0; }
   }
 
-  .note {
-    text-align: center;
-    font-size: 12px;
-    color: var(--text-light);
-    margin-top: 18px;
-    line-height: 1.55;
+
+  .seg { margin-left:auto; display:inline-flex; gap:4px; padding:3px; background:rgba(15,42,74,.06); border-radius:100px; }
+  .seg button { border:0; background:transparent; font:600 12px inherit; font-family:inherit; color:var(--text-dim); padding:6px 14px; border-radius:100px; cursor:pointer; transition:all .25s; }
+  .seg button:hover { color:var(--primary); }
+  .seg button.on { background:linear-gradient(135deg,#0f2a4a,#1a3c66); color:#fff; box-shadow:0 3px 10px rgba(15,42,74,.25); }
+  .chart-wrap { position:relative; }
+  .chart-wrap svg { width:100%; height:auto; display:block; }
+  .cbar { transform-origin:bottom; transform-box:fill-box; animation:grow .6s cubic-bezier(.2,.8,.2,1) both; transition:opacity .2s; }
+  @keyframes grow { from { transform:scaleY(0); } to { transform:scaleY(1); } }
+  .cg:hover .cbar { opacity:.8; } .cg { cursor:pointer; }
+  .ctip { position:absolute; pointer-events:none; background:#0f2a4a; color:#fff; padding:8px 11px; border-radius:10px; font-size:11px; line-height:1.5; opacity:0; transition:opacity .15s; box-shadow:0 6px 18px rgba(15,42,74,.3); white-space:nowrap; z-index:5; }
+  .chart-sel { margin-left:auto; font-family:inherit; font-size:12px; padding:5px 10px; border:1px solid rgba(15,42,74,.15); border-radius:100px; background:#fff; color:var(--text); }
+  @media (max-width:700px){ .seg{margin-left:0} }
+
+  .cat-note{font-size:12px;color:var(--text-dim);margin:6px 2px 14px;line-height:1.5}
+  .heat{width:100%;border-collapse:separate;border-spacing:3px;font-size:13px}
+  .heat th{font-size:11px;font-weight:700;color:var(--text-dim);text-align:center;padding:4px 6px;white-space:normal}
+  .heat th:first-child,.heat td:first-child{text-align:left}
+  .heat td{text-align:center;padding:9px 6px;border-radius:8px;font-weight:700;color:#1a2233}
+  .heat td small{display:block;font-weight:500;font-size:10px;color:#5a6a80}
+  .heat td.low{opacity:.55;font-style:italic}
+  .heat td.hname{background:transparent;font-weight:700;text-align:left;padding-left:2px}
+  .heat tr.netrow td{background:#fffdf5;border:1px dashed var(--gold)}
+  .ins-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin-bottom:16px}
+  .ins{background:#fff;border-radius:14px;padding:14px 16px;box-shadow:0 2px 10px rgba(15,42,74,.08);border-left:4px solid var(--gold);font-size:13px;line-height:1.55}
+  .ins.g{border-left-color:var(--green)} .ins.r{border-left-color:var(--red)} .ins.b{border-left-color:var(--blue)}
+  .ins b.t{display:block;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px}
+  .hcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin:6px 0 18px}
+  .hcard{background:#fff;border-radius:14px;padding:16px;box-shadow:0 2px 10px rgba(15,42,74,.08)}
+  .hcard h4{margin:0 0 2px;font-size:15px;color:var(--primary);display:flex;justify-content:space-between;gap:8px;align-items:center}
+  .hcard .sub{font-size:11px;color:var(--text-mute);margin-bottom:8px}
+  .hcard .row{margin:7px 0 2px;font-size:11px;font-weight:700;color:var(--text-dim)}
+  .chip{display:inline-block;margin:2px 4px 2px 0;padding:3px 9px;border-radius:100px;font-size:12px;font-weight:600}
+  .chip.good{background:#dcf3e5;color:#176b3a} .chip.bad{background:#fbdcda;color:#a12622} .chip.neu{background:#eef1f6;color:#5a6a80}
+  .warn{background:#fff6dc;color:#8a6410;border-radius:8px;padding:5px 9px;font-size:11px;margin-top:8px}
+  .bk { display:inline-block; min-width:34px; padding:5px 7px; background:#003b95; color:#fff; font-weight:700; font-size:13px; line-height:1; text-align:center; border-radius:6px 6px 6px 0; }
+  @media (max-width: 700px) {
+    html, body { overflow-x: hidden; }
+    .tabs { width: auto; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; border-radius: 16px; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab { flex: 0 0 auto; white-space: nowrap; }
+    .stats-grid { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; }
+    .stat-card { padding: 12px 12px; }
+    .trend-card { overflow-x: auto; padding: 12px 10px; }
+    .trend-card h3 { flex-wrap: wrap; }
+    .trend-card h3 .note { margin-left: 0; width: 100%; font-size: 10px; }
+    .trend-table th, .trend-table td { padding: 7px 4px; font-size: 11px; }
+    .trend-table th:nth-child(8), .trend-table td:nth-child(8) { display: none; }
+    .loc-card { padding: 12px; }
+    .locations-grid, .breakdowns { grid-template-columns: 1fr; }
   }
 
-  @media (max-width: 480px) {
-    .card { padding: 28px 22px 24px; border-radius: 22px; }
-    .header h1 { font-size: 23px; }
-    .logo-img { width: 150px; }
-    .star { font-size: 38px; }
-    .hotel-item { padding: 14px 15px; font-size: 14.5px; }
-    .lang-switch { top: 12px; right: 12px; }
-    .lang-btn { padding: 5px 8px; font-size: 11px; }
+  .cal-btn { border:1px solid rgba(15,42,74,.15); background:#fff; border-radius:100px; padding:7px 14px; font:600 12px inherit; font-family:inherit; color:var(--primary); cursor:pointer; }
+  .cal-sel { padding:8px 12px; border:1px solid #d5dce6; border-radius:12px; font:12px inherit; font-family:inherit; background:#fff; max-width:100%; }
+  .cal { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:6px; margin-bottom:12px; }
+  .cal .h { text-align:center; font-weight:700; color:var(--text-mute); font-size:11px; padding:4px; }
+  .cd { background:#fff; border-radius:12px; min-height:78px; padding:7px 9px; cursor:pointer; box-shadow:0 2px 8px rgba(15,42,74,.06); border:2px solid transparent; font-size:11px; }
+  .cd:hover { border-color:var(--gold); } .cd.sel { border-color:var(--primary); } .cd.out { opacity:.35; } .cd.today b { color:var(--gold); }
+  .cd b { font-size:13px; } .cd div { margin-top:3px; font-weight:600; }
+  .cd .n { color:var(--red); } .cd .p { color:var(--green); } .cd .u { color:var(--yellow); }
+  @media (max-width: 700px) {
+    .cal { gap:3px; } .cd { min-height:56px; padding:4px; border-radius:8px; font-size:9.5px; } .cd b { font-size:11px; }
   }
+
+  .dl { display:inline-flex; align-items:center; gap:6px; font-weight:600; color:var(--primary); font-size:12px; }
+  .dl input { padding:7px 10px; border:1px solid #d5dce6; border-radius:12px; font:12px inherit; font-family:inherit; background:#fff; }
+  .ov { position:fixed; inset:0; background:rgba(15,42,74,.45); display:none; align-items:center; justify-content:center; z-index:1000; padding:12px; }
+  .ov.on { display:flex; }
+  .md { background:#fff; border-radius:16px; padding:20px; max-width:760px; width:100%; max-height:90vh; overflow:auto; }
+  .md h3 { color:var(--primary); font-size:15px; margin-bottom:12px; }
+  .md .f { display:grid; grid-template-columns:150px 1fr; gap:6px 12px; padding:7px 0; border-bottom:1px solid #eef2f7; font-size:12.5px; }
+  .md .f b { color:var(--text-dim); font-size:11px; text-transform:uppercase; letter-spacing:.3px; }
+  .md .f span { white-space:pre-wrap; word-break:break-word; }
+  @media (max-width: 700px) { .md .f { grid-template-columns:1fr; gap:2px; } .md { padding:14px; } }
+
+  .fbar { display:flex; flex-wrap:wrap; align-items:flex-end; gap:10px; background:#fff; border-radius:16px; padding:12px 14px; margin-bottom:12px; box-shadow:0 2px 10px rgba(15,42,74,.06); }
+  .fbar .ft { width:100%; font-weight:700; color:var(--primary); font-size:13px; }
+  .fbar label { display:flex; flex-direction:column; gap:3px; font-size:10.5px; font-weight:700; color:var(--text-dim); text-transform:uppercase; letter-spacing:.3px; }
+  .fbar select, .fbar input { padding:8px 10px; border:1px solid #d5dce6; border-radius:12px; font:12.5px inherit; font-family:inherit; background:#fff; color:var(--text); min-width:130px; text-transform:none; }
+  @media (max-width: 700px) { .fbar label { flex:1 1 44%; } .fbar select, .fbar input { min-width:0; width:100%; } }
 </style>
 </head>
 <body>
 
-<div class="card">
-  <div class="lang-switch">
-    <button class="lang-btn" data-lang="kz">ҚАЗ</button>
-    <button class="lang-btn active" data-lang="ru">РУС</button>
-    <button class="lang-btn" data-lang="en">ENG</button>
+<div class="container">
+
+  <h1>🏨 Дашборд отзывов — PANA Hotels</h1>
+
+  <div class="tabs">
+    <div class="tab active" onclick="showTab(0, this)">📊 Статистика</div>
+    <div class="tab" onclick="showTab(1, this)">📋 Реестр отзывов</div>
+    <div class="tab" onclick="showTab(2, this)">📅 Календарь</div>
+    <div class="tab" onclick="showTab(3, this)">🏆 Категории Booking</div>
   </div>
 
-  <div class="header">
-    <div class="logo">
-      <img src="logo.png" alt="PANA" class="logo-img">
+  <!-- ═══════════ СТАТИСТИКА ═══════════ -->
+  <div class="panel active" id="panel-0">
+
+    <div class="stats-grid" id="statsCards"></div>
+
+    <div class="section-title">
+      📈 Динамика по периодам
+      <span class="badge" id="pb"></span>
+      <div class="seg"><button data-m="weeks" class="on" onclick="setPeriodMode('weeks')">4 недели</button><button data-m="months" onclick="setPeriodMode('months')">Месяцы</button><button data-m="quarters" onclick="setPeriodMode('quarters')">Кварталы</button></div>
     </div>
-    <h1 data-i18n="title">Оцените ваш отдых</h1>
-    <p data-i18n="subtitle">Выберите отель и поставьте оценку</p>
+    <div class="trend-grid" id="periodTrends"></div>
+
+    <div class="section-title">
+      🏨 Тренды по отелям
+      <span class="badge">улучшение / ухудшение</span>
+      <div class="seg"><button data-m="weeks" class="on" onclick="setPeriodMode('weeks')">4 недели</button><button data-m="months" onclick="setPeriodMode('months')">Месяцы</button><button data-m="quarters" onclick="setPeriodMode('quarters')">Кварталы</button></div>
+    </div>
+    <div class="trend-grid" id="hotelTrends"></div>
+
+    <div class="section-title">⭐ Рейтинги площадок</div>
+    <div class="trend-grid" id="ratingsTable"></div>
+
+    <div class="section-title">🏆 Отели и рейтинги</div>
+    <div class="locations-grid" id="locationsGrid"></div>
+
+    <div class="section-title">📊 Детальные разбивки</div>
+    <div class="breakdowns" id="breakdowns"></div>
+
   </div>
 
-  <div class="divider"></div>
-
-  <p class="section-label" data-i18n="chooseHotel">Выберите отель</p>
-
-  <div class="hotel-list" id="hotelList">
-    <button class="hotel-item" data-key="kainar">
-      <span>Kainar Hotel</span>
-      <span class="check">✓</span>
-    </button>
-    <button class="hotel-item" data-key="ayusai">
-      <span>Pana Ayusai</span>
-      <span class="check">✓</span>
-    </button>
-    <button class="hotel-item" data-key="nomad_kolsay">
-      <span>Nomad Kolsay</span>
-      <span class="check">✓</span>
-    </button>
-    <button class="hotel-item" data-key="unique_charyn">
-      <span>Pana Unique Charyn</span>
-      <span class="check">✓</span>
-    </button>
-    <button class="hotel-item" data-key="unique_semey">
-      <span>Pana Unique Semey</span>
-      <span class="check">✓</span>
-    </button>
-    <button class="hotel-item" data-key="unique_kolsay">
-      <span>Pana Unique Kolsay</span>
-      <span class="check">✓</span>
-    </button>
-  </div>
-
-  <div class="rating-block" id="ratingBlock">
-    <div class="rating-inner">
-      <p class="section-label" data-i18n="yourRating">Ваша оценка</p>
-      <div class="stars" id="stars">
-        <button class="star" data-value="1">★</button>
-        <button class="star" data-value="2">★</button>
-        <button class="star" data-value="3">★</button>
-        <button class="star" data-value="4">★</button>
-        <button class="star" data-value="5">★</button>
-      </div>
-      <p class="hint" id="hint" data-i18n="hint">Нажмите на звезду</p>
-
-      <button class="btn" id="submit" disabled data-i18n="submit">Отправить</button>
+  <!-- ═══════════ РЕЕСТР ═══════════ -->
+  <div class="panel" id="panel-1">
+    <div class="filter-banner" id="filterBanner">
+      🔍 Показаны отзывы: <strong id="filterLabel"></strong>
+      <button onclick="clearFilter()">✕ Сбросить</button>
+    </div>
+    <div class="fbar">
+      <div class="ft">🔍 Фильтры</div>
+      <label>Город<select id="cityF" onchange="renderRows()"></select></label>
+      <label>Отель<select id="hotelF" onchange="renderRows()"></select></label>
+      <label>Тип<select id="typeF" onchange="renderRows()"></select></label>
+      <label>Канал<select id="chanF" onchange="renderRows()"></select></label>
+      <label>С даты<input type="date" id="dFrom" onchange="renderRows()"></label>
+      <label>По дату<input type="date" id="dTo" onchange="renderRows()"></label>
+      <button class="cal-btn" onclick="clearDates()">✕ Сбросить</button>
+    </div>
+    <div class="toolbar">
+      <button class="btn-main" onclick="exportToExcel()">⬇️ Скачать Excel</button>
+      <span class="counter" id="counter"></span>
+    </div>
+    <div class="table-wrap">
+      <table id="dataTable">
+        <thead>
+          <tr>
+            <th class="col-date">Дата</th>
+            <th class="col-name">Имя клиента</th>
+            <th class="col-city">Город</th>
+            <th class="col-loc">Точка продаж</th>
+            <th class="col-channel">Канал</th>
+            <th class="col-type">Тип отзыва</th>
+            <th class="col-cat">Категория</th>
+            <th class="col-status">Статус претензии</th>
+            <th class="col-valid">Обоснованность</th>
+            <th class="col-comp">Компенсация</th>
+            <th class="col-measures">Принятые меры</th>
+            <th class="col-desc">Описание обращения</th>
+            <th class="col-emp">Сотрудник</th>
+            <th class="col-rating">Оценка</th>
+            <th class="col-post">Статус после отработки</th>
+            <th class="col-contact">Связь с клиентом</th>
+            <th class="col-problem">Проблема</th>
+            <th class="col-dec">Решение</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
     </div>
   </div>
 
-  <p class="note" data-i18n="note">Спасибо, что помогаете нам стать лучше</p>
+  <!-- ═══════════ КАЛЕНДАРЬ ═══════════ -->
+  <div class="panel" id="panel-2">
+    <div class="toolbar">
+      <button class="cal-btn" onclick="calMove(-1)">◀</button>
+      <strong id="calTitle" style="min-width:150px;text-align:center"></strong>
+      <button class="cal-btn" onclick="calMove(1)">▶</button>
+      <button class="cal-btn" onclick="calToday()">Сегодня</button>
+      <select id="calCity" class="cal-sel" onchange="renderCal()"></select>
+      <select id="calLoc" class="cal-sel" onchange="renderCal()"></select>
+      <span class="counter" style="font-weight:500">🔴 негатив · 🟢 позитив · 🟡 нейтрально</span>
+    </div>
+    <div class="cal" id="cal"></div>
+    <div class="section-title" id="calDayTitle" style="display:none"></div>
+    <div class="table-wrap" id="calDayList" style="display:none"></div>
+  </div>
+
+</div>
+
+<div class="panel" id="panel-3"><div id="catsRoot"></div></div>
+
+<div class="ov" id="ov" onclick="if(event.target===this)closeReview()">
+  <div class="md"><div id="mBody"></div>
+    <div style="margin-top:14px;text-align:right"><button class="cal-btn" onclick="closeReview()">Закрыть</button></div>
+  </div>
 </div>
 
 <script>
-  const TRANSLATIONS = {
-    ru: {
-      title: "Оцените ваш отдых",
-      subtitle: "Выберите отель и поставьте оценку",
-      chooseHotel: "Выберите отель",
-      yourRating: "Ваша оценка",
-      hint: "Нажмите на звезду",
-      submit: "Отправить",
-      note: "Спасибо, что помогаете нам стать лучше",
-      ratingSet: (n) => `Вы поставили ${n} ${pluralRu(n)}`,
-      waText: (hotel, n) => `Здравствуйте! Я гость отеля ${hotel}. Моя оценка: ${n} из 5. Хочу оставить отзыв/замечание.`
-    },
-    kz: {
-      title: "Демалысыңызды бағалаңыз",
-      subtitle: "Қонақүйді таңдап, баға қойыңыз",
-      chooseHotel: "Қонақүйді таңдаңыз",
-      yourRating: "Сіздің бағаңыз",
-      hint: "Жұлдызға басыңыз",
-      submit: "Жіберу",
-      note: "Бізді жақсартуға көмектескеніңізге рақмет",
-      ratingSet: (n) => `Сіз ${n} жұлдыз қойдыңыз`,
-      waText: (hotel, n) => `Сәлеметсіз бе! Мен ${hotel} қонақүйінің қонағымын. Менің бағам: 5-тен ${n}. Пікір/ескерту қалдырғым келеді.`
-    },
-    en: {
-      title: "Rate your stay",
-      subtitle: "Choose a hotel and leave your rating",
-      chooseHotel: "Choose a hotel",
-      yourRating: "Your rating",
-      hint: "Tap a star",
-      submit: "Submit",
-      note: "Thank you for helping us improve",
-      ratingSet: (n) => `You rated ${n} ${n === 1 ? "star" : "stars"}`,
-      waText: (hotel, n) => `Hello! I am a guest of ${hotel}. My rating: ${n} out of 5. I would like to leave feedback.`
-    }
-  };
+/* ============================================================
+   1. ДАННЫЕ
+   ============================================================ */
+const rows = [];
+const SNAP = { rows: [], ratings: [], cats: [], updated: '' };
+const TR = {"5jd40w18e": "Отличный вид, но остальное не стоит своих денег.\nВид из домика был лучше, чем я могла себе представить. Очень красивый домик и захватывающий вид. Не думаю, что когда-нибудь увижу что-то настолько великолепное. Кровать была удобной, интерьер домика — потрясающим, я сделала много фото внутри. Домик стоял прямо над известным кафе Колсай (кафе «Тары»). Ночью видно все звёзды, это было прекрасно, и очень тихо.\nК сожалению, у меня много негативных замечаний. Во-первых, общение с хозяевами до заезда было очень плохим: они отвечают крайне медленно, а нам нужно было узнать точное место высадки. В Booking они отвечали около 2 дней. Во-вторых, постельное бельё было грязным: на том месте, где нужно было лежать и спать, было большое пятно. Было уже поздно, и мне пришлось подкладывать полотенце, чтобы лечь. Утром в ванной из обогревателя капала вода (СИЛЬНО КАПАЛО), всё было мокрым, и мы боялись, что вода попадёт на электричество. Я написала им, но ответа не было вообще. Мы даже не смогли принять душ, потому что боялись прикасаться к воде. Кроме того, ночью стоял ужасный запах, как от канализации, не знаю почему. И наконец, шведский стол был очень скудным и неудовлетворительным: буквально только молоко, сыр и какое-то блюдо из яиц.\nЯ разочарована: это не стоит и половины заплаченных денег. Да, вид потрясающий, но сервис, запах и риск для безопасности того не стоят. Надеюсь, это исправят :)", "j8h2a27z": "Nomad Kolsay — отдых с видом\nРасположение хорошее: прямой вид на озеро Кольсай.\nОтель организует перевозку вас с багажом от определённой точки сбора. Подача задерживается на 40 минут – 1 час. Также во время моего проживания вода или ванная странно пахли", "uuaot8ha": "Хорошо оборудованный номер приличного размера. Мы жили в одной из «коробок на сваях».\nОчень удобная большая кровать.\nКрасивый панорамный вид с балкона.\nХорошая ванная с большим количеством горячей воды.\nХолодильник.\nЧай, кофе и чайник.\nСотрудники на ресепшене не очень отзывчивые.\nВыбор еды вечером ограничен, но мы об этом знали и по приезде уточнили у торговых точек, что будет доступно и когда они закроются. В итоге поужинали вполне прилично индийской кухней.\nЦена номера высокая, но других вариантов поблизости практически нет. Многие отзывы очень негативные, а мы на самом деле нашли номер очень хорошо оборудованным и комфортным.", "1yihpiumn": "Расположение непревзойдённое, потрясающий вид на озеро Кольсай. Просыпаться с таким пейзажем того определённо стоило. Сотрудники были очень отзывчивы и сделали всё возможное, чтобы решить нашу проблему, когда в первоначальном номере был неприятный запах. Они любезно предложили нам в качестве альтернативы номер в кемпе, и мы очень ценим их старания и желание помочь.\nДля такой цены номер и удобства разочаровали. Некоторые удобства в номере не работали, а номер был плохо обставлен. Не оставили даже бесплатную бутылку воды, которую обычно ожидаешь при такой цене.\nЧто серьёзнее: когда грузовик-перевозчик вёз нас вниз, сотрудник сел на наш багаж и сломал его. Это было особенно обидно и показало небрежное отношение к вещам гостей.", "1lc2i91gv": "Pana Ayusai превзошёл все наши ожидания!\nУютный деревянный домик был исключительно чистым, хорошо отапливался, а из него открывался невероятный вид на ночное небо, полное звёзд.\nРасположение идеально для поездки на Большое Алматинское озеро, но это также чудесное место, чтобы просто отдохнуть в тихих горах.\nПерсонал сделал даже больше, чем нужно: помогали с такси и даже принесли микроволновку прямо в номер, чтобы нам было удобно!\nОни также без проблем выполнили нашу заранее оговорённую просьбу о номере с отдельным входом.\nТёплые люди, прекрасная атмосфера и первоклассный сервис.\nОбязательно остановились бы здесь снова!", "or06h69k": "Прекрасное место. Домики были уютными и уединёнными. Персонал в ресторане и на стойке регистрации был любезным и приветливым.\nНочью каньон усыпан звёздами, и это делает пребывание здесь стоящим.\nВо всех ванных комнатах стоял неприятный запах, хотя мы забронировали 3 домика.\nВ номерах не предоставляют воду, лучше купите свою. Запаситесь продуктами до закрытия ресторана.", "delino6d": "Пребывание было фантастическим, уникальный опыт — хороший отдых после 5,6 км прогулки по каньону, наблюдение за звёздами и утреннее солнце.\nУникальный и классный дизайн.\nДо ресторана и ресепшена нужно идти пешком при порывистом ветре и в темноте, уличного освещения нет.", "r3s6ebvb": "Место, где обязательно нужно остановиться. Великолепное расположение и номер, но есть и серьёзные недостатки. 10/10 с большими оговорками.\nВ целом было и потрясающе, и не очень хорошо одновременно. Но я ставлю 10, потому что расположение просто сказочное, а номер был действительно отличным: великолепный вид и балкон, удобная кровать, хорошее кресло, большой телевизор, хороший горячий душ. Кроме того, на «ресепшене» был один сотрудник визит-центра, который был очаровательным, остальные не говорили по-английски и не помогали.\nНикакой информации и инструкций. Мы оплатили завтрак. Выбрали кофе и блюда. Кафе, которое управляется отдельно, — очень красивое здание, но работает ужасно. Начало в 9:00, а нам нужно было уехать в 9:30. К 9:15 всё ещё закрыто. Кофе нет. Еду нужно было ждать ещё 15 минут. Слишком поздно. Недопустимо. Мы также ужинали там вечером. Совершенно абсурдные цены — 14 фунтов за маленький бургер, который был не очень вкусным. В два-три раза дороже, чем везде, где мы останавливались. Вижу также много проблем с обслуживанием номеров. Они пытаются управлять элитным бутик-отелем, но без инфраструктуры и персонала отеля. Дорого за то, что это такое.", "lpyt9nhc": "Здесь стоит остановиться ради прекрасного вида и доступа к каньону, но сервис хаотичный.\nРасположение потрясающее, очень приятно сидеть на террасе и смотреть на каньон. Домик был комфортным, с чудесным горячим душем. Хороший выбор чая в номере.\nЗавтрака не было. Нас попросили выбрать завтрак накануне вечером, а в 9:00 мы пришли и не обнаружили ни одного сотрудника. Мы хотели уехать в 9:30 и поэтому ничего не успели. Кофемашина была сломана оба дня, так что кофе не было. Странно, что нас просили выбрать вид кофе, когда машина уже была сломана.", "5g48fw1c": "Моё лучшее место. Всегда возвращаюсь сюда, как домой", "km90ayc6": "Всё нужно улучшить, потому что ваше расположение лучшее по сравнению с другими отелями\n+ Расположение лучшее для озера Кольсай\nно дорога к отелю очень опасная\n- Цена моего номера 252 евро, но\nномер нечистый, сотрудники были неприветливы\nНет воды, нет стульев в номере, нет отопления, и наконец, нет стаканов в номере. Мы путешествуем по всему миру. Цена номера очень высокая, а сервис плохой, нужно улучшить всё", "1ptda2h6m": "В номере паук!\nВодонагреватель в душе утром не работает,\nУтром на ресепшене никого нет\nЗавтрак находится в 200 м под горку, а возвращаться в номер нужно в гору\nПерсонал не идёт навстречу\nВ номере не совсем чисто", "10kf26gz9": "Расположение абсолютно прекрасное, и здесь определённо стоит остановиться на одну ночь. Это поистине уникальное и красивое место, совсем не похожее на обычный отель. Окружение — одна из главных причин приехать.\nК сожалению, во время нашего пребывания возникло несколько проблем. В номере не было фена, вода была лишь тёплой, а не по-настоящему горячей. Интернет/Wi-Fi в домике не работал.\n\nПостельное бельё тоже было не таким чистым, как ожидалось.\n\nСамым большим разочарованием стал сервис завтрака. Рано утром на ресепшене никого не было, и мы, к сожалению, были очень недовольны тем, как организовали завтрак. Мы ждали более 30 минут, после чего нам наконец принесли тарелку с яичницей на одного человека. Но это было не то, что мы заказывали, и подали без хлеба.\n\nУ нас был всего один час на завтрак, и даже после часа ожидания полный завтрак так и не принесли. В итоге нам пришлось выехать и уехать без нормального завтрака.\n\nВ целом считаю, что курорту следует либо снизить цену, либо существенно улучшить сервис и условия, потому что при текущей цене мы ожидали гораздо лучшего.", "15uml9o7s": "Понравился сервис, сотрудники на ресепшене были очень приятными, воздух свежий и идеальный, виды отличные.\nВ выходные приезжает много людей, которые не бронируют, и так как пространство открытое, иногда случайные люди из любопытства пытаются заглянуть в домик — немного раздражает", "1cuxgie74": "Если хотите приехать на отдых, приезжайте, только если знаете местный язык: даже люди на ресепшене плохо говорят по-английски.\nРасположение хорошее.\nПерсонал не помогал, нам пришлось нести весь багаж самим, помощи не было, они легко говорили «нет английского». Большой языковой барьер.", "klh04tp": "Очень ужасный опыт!", "9jv13idq": "Когда мы заехали, не было электричества, хотели принять душ после долгого похода, но воды не было. Нет Wi-Fi, трудно с подключением\n+ Мне понравился только потрясающий, захватывающий вид из нашего номера!\nИ бесплатный завтрак в кафе «Тары» с идеальным видом во время еды.\n- Когда мы заехали, не было электричества, хотели принять душ после долгого похода, но воды не было.\nНет Wi-Fi, трудно с подключением.\nНет зеркала в полный рост, нет стульев внутри, но есть стол. Стул стоял снаружи на балконе. Нет бесплатной воды в номере.", "1vov37ldo": "Когда мы заехали, не было электричества, хотели принять душ после долгого похода, но воды не было. Нет Wi-Fi, трудно с подключением\n+ Мне понравился только потрясающий, захватывающий вид из нашего номера!\nИ бесплатный завтрак в кафе «Тары» с идеальным видом во время еды.\nКогда мы заехали, не было электричества, хотели принять душ после долгого похода, но воды не было.\nНет Wi-Fi, трудно с подключением.\nНет зеркала в полный рост, нет стульев внутри, но есть стол. Стул стоял снаружи на балконе. Нет бесплатной воды в номере.", "1cmzho33i": "Отель отличный, номера и ресепшен были отличными\nНа балконе можно курить\nОчень красивый вид\nМне ОЧЕНЬ нравится там", "1faeu6n71": "Типичная разводка для туристов, держитесь подальше\nОтличное расположение, прямо у каньона\nОчень низкое качество за такую цену. У вас нет доступа ни к какой ванной или туалету всю ночь, до 8 утра (!!!), а когда доступ появляется — это 10 минут пешком от вашей палатки. Нелепо!", "1luv3g2l4": "Расположение отличное. Прочитав другие отзывы про глэмпинг и ограниченный доступ к туалетам и т. д., я немного волновался, но на деле это вообще не было проблемой, да и по утрам рядом часто кто-то был, чтобы при необходимости открыть дверь пораньше. Жалобы других на отсутствие чая и кофе при наличии чайника, похоже, исправили, что приятно.\nРекомендую брать с собой перекус, так как еда дорогая и выбор ограничен. Ресторан при визит-центре пытается быть премиальным, но многих позиций меню не было, а в один из вечеров из-за технической неполадки вообще нельзя было подать еду. Это не их вина, но для такого уединённого места это проблема.", "7hp0dbl6": "Расположение отличное. Прочитав другие отзывы про глэмпинг и ограниченный доступ к туалетам и т. д., я немного волновался, но на деле это вообще не было проблемой, да и по утрам рядом часто кто-то был, чтобы при необходимости открыть дверь пораньше. Жалобы других на отсутствие чая и кофе при наличии чайника, похоже, исправили, что приятно.\n- Рекомендую брать с собой перекус, так как еда дорогая и выбор ограничен. Ресторан при визит-центре пытается быть премиальным, но многих позиций меню не было, а в один из вечеров из-за технической неполадки вообще нельзя было подать еду. Это не их вина, но для такого уединённого места это проблема.", "x8ahkzb9": "Расположение отличное, объект очень хороший.\nЗавтрак не оправдал ожиданий. Выбор был минимальным. Могли бы сделать лучше, учитывая цену. Питьевая вода не предоставляется, а это необходимо. Персонал хороший, но улучшения и обучение могли бы сделать впечатление ещё лучше. Цены немного высоковаты, возможно, это обусловлено расположением.", "1gji4kcw": "Всё супер. Но сейчас нет алкоголя", "19hffvv5s": "Если хотите увидеть закат и рассвет без туристов, ночёвка — хороший вариант, чтобы исследовать и насладиться тишиной.\nТуалет с запахом, и для такого дорогого шале не дали бутылку воды", "2shoob7s": "Не рекомендую\n+ Только расположение\n- Грязно, ванная, нет кружек и стаканов, полотенца очень жёсткие, ванная очень грязная, персонал неприветливый. Водитель всё время проверял телефон и пользовался им во время поездки, а сама дорога проходит в горах, поэтому поездка в отель показалась мне небезопасной.", "xdgch828": "Потрясающе. Расположение классное, персонал потрясающий!, еда в кафе отличная!", "ai3htyc0": "Просто идеальное пребывание\nМы бронировали шале, так как для нас приоритетом была отдельная ванная. Домики очень красивые, чистые и удобные для заезда. В них есть кондиционер, и они довольно просторные. Вечером с балкона можно любоваться звёздами.\nВы находитесь на территории национального парка, что делает знакомство с Чарынским каньоном по-настоящему уникальным. Утром людей нет, и можно наслаждаться видами в одиночестве. Определённо стоит своих денег.", "ifugc2d5": "Великолепное ущелье, но удобства разочаровали\nРасположение было прекрасным, а веранда уютной. Гамак или более удобная мебель сделали бы её ещё уютнее.\n- Нет доступа в ванную с 23:00 до 8:00. В итоге мы уехали на рассвете и воспользовались туалетом в Чёрном каньоне. Можно, конечно, легко справить нужду на земле, но если вы не хотите, чтобы люди копали ямы, нужно обеспечить доступ к туалету в любое время. Если этого нет, это должно быть очевидно указано в описании жилья.", "1igb4h790": "Прочитанные ранее отзывы подготовили нас к проживанию, и могу сказать, что всё было так, как ожидалось.\nВсё дело в расположении, оно было фантастическим.\nОднажды утром в нашем глэмпинг-домике не было проточной воды, что стало огромной проблемой, а завтрак определённо мог бы быть намного лучше, хотя расположение ресторана превосходное.", "g7z9esvp": "Отличное место для отдыха\nВ домиках было здорово жить, а сотрудники при заселении были очень дружелюбны! Он находится прямо у визит-центра, и нам помогли донести сумки до домика. Виды на каньон были великолепными, а ближайший ресторан — приятным местом, чтобы поесть.\n\nВ целом номер был отличным, пусть и немного простым, но опыт проживания в каньоне это компенсирует.\n\nРесторан немного дорогой, но, думаю, это обычное дело для туристического места.\n\nЕдинственная проблема, которая у нас возникла, не имела прямого отношения к отелю: мы заказали через отель трансфер обратно в Алматы за 50 000 тенге. Это было дороговато, но других вариантов у нас не было, так как мы без машины. Однако автомобиль, который нам должны были подать, оказался сломан, приехала машина попроще, и мы узнали об этом только когда она подъехала, так что заплаченная надбавка совсем себя не оправдала. Водитель этой машины также отказался включать кондиционер, пока мы не доплатим ещё 5000 тенге. Это была трёхчасовая поездка при 30 градусах! Мы также попросили его сделать ужасную техно-музыку потише, но он, по сути, проигнорировал нас. Надеюсь, они больше никогда не будут пользоваться услугами этого водителя!", "1stxtmqau": "Жильё определённо уникальное! В целом нам очень понравилось пребывание. Было чудесно просыпаться на рассвете и сто\nОтличное расположение, дружелюбный персонал, а кровать была невероятно удобной!\nЦена завышена, учитывая, что гости могут пользоваться туалетом/душем только в определённые часы, а эти удобства находятся в 5 минутах ходьбы. Чайник предоставили, но без чая/кофе и всего с одной чашкой.", "9zkepb4q": "Спасибо за хорошее гостеприимство\nЗавтрак и место — всё было очень хорошо, мне понравилось. Всё было очень приятно, понравились ресторан, еда и гостеприимство", "10nv37y8g": "Отличные впечатления от парка Чарынского каньона!\nМы забронировали номер, и он был очень комфортным.\nНедёшево, но опыт определённо того стоит, закаты и рассветы в парке потрясающие!\nЕдинственное — запах канализации, который мог проникать в наш номер, но, учитывая обустройство, жаловаться нам не пристало :)", "ylil59d6": "Просто потрясающее место для уникального опыта\nПотрясающее расположение с видом на сам каньон. Удобства отличные, а кровать очень удобная. Завтрак (подавали в визит-центре) был фантастическим. Лучшее здесь то, что вы находитесь в парке, когда все уже ушли смотреть закат, и остаётесь там до того, как кто-то придёт смотреть рассвет. Очень понравилось\nТолько учтите особенность душа. Он отличный, но чтобы пошла горячая вода, нужно повернуть его на холодную", "10jqxlm2i": "Отличный вид и расположение, но отель очень старый, в номере только кровать, ни кондиционера, ни холодильника, ничего нет", "rj8jy3s5": "В целом очень приятный и запоминающийся опыт\nРасположение вне конкуренции, мы рано утром встали, чтобы встретить восход над каньоном, а ночью смотрели на звёзды с веранды\nПерсонал был отличным, были и англоговорящие сотрудники\nВ одной из наших палаток сломалась молния, мы попросили, и нам её без проблем заменили\nПалатки были чистыми, и в них было всё необходимое\nНочью, учитывая что это палатки, было немного шумно, это сильно зависит от соседей. Рядом были, предположительно, военные, которые шутили и всё такое, а в какой-то момент кто-то ходил вокруг нашей палатки, или нам так показалось; опять же, к этому нужно быть готовым в палатке. И ещё, она не выглядит\nСанитарные удобства находятся в главном здании и доступны только с 8:00 до 23:00. Туалеты общие со всеми дневными туристами, и их чистота меняется в течение дня. Души только для ночующих гостей, и, хотя я бы посоветовал взять сланцы для душа, они вполне приличные.", "1ic39dn2x": "Сотрудники, ориентированные на сервис. Прекрасное расположение. Похоже, недавно был ремонт. Если будет возможность, выбирайте домик № 8!", "1ptfokuk": "В ванной плохо пахло", "nkp62c39": "Хорошо, но базовых удобств нет...\nне предоставляют санузлы круглосуточно... и ограничивают определёнными часами..", "1u8i7518e": "Ночёвка в Чарынском каньоне позволяет увидеть и восход, и закат солнца, что является дополнительным плюсом. Завтрак, который входит в стоимость проживания, с видом на каньон тоже очень приятен! Сами домики очень удобные и элегантные внутри!\nЦены в ресторане довольно высокие.", "oiimsg7x": "У нас был чудесный отдых! Всё было чистым, комфортным и хорошо организованным. Расположение прекрасное, а окружающая природа просто потрясающая. Хозяева были очень дружелюбными и гостеприимными. Нам очень понравилось здесь, и мы обязательно остановились бы снова. Настоятельно рекомендуем!", "12grju3yg": "Прекрасное место, чтобы проснуться. Можно зайти в каньон до наплыва людей, утром мы были там одни. Но на этом хорошее и заканчивается.\nДальше всё остальное. На 10 мест проживания приходится 1 общий душ (причём ледяной). Туалеты тоже нужно делить со всеми туристами, приходящими в каньон (регулярно стоит очередь), и они были откровенно грязными. Пользоваться туалетом с 23:00 до 8:00 нельзя. Было бы здорово, если бы был отдельный блок туалета/душа или другой вход для тех, кто там ночует. До туалета и душа ещё и далеко идти.\nПалатка была совершенно не рассчитана на погоду. Когда мы были там, дул ветер, и мы не сомкнули глаз, потому что палатка ужасно шумела. Палатку к тому же нельзя закрыть на замок.\nМы пробыли 2 ночи и должны были платить за две ночи туристический налог и парковый сбор. Мы также узнали только в парке, что 2 из 4 пеших маршрутов закрыты навсегда. Так что одного дня было бы более чем достаточно.\nМеста, где можно поесть в парке, очень дорогие и весьма посредственные. Персонал тоже не особо отзывчивый и дружелюбный.\nПросто поблизости мало вариантов, кроме деревни в часе езды, но её мы бы точно не посоветовали.", "1p1fdx0k": "Нечисто, старые номера", "11kwil8f8": "Расположение абсолютно потрясающее и позволяет наслаждаться национальным парком без толп туристов рано утром и вечером. Палатки были отличными и чистыми. По нашей просьбе нам предоставили дополнительную кровать.\nВанные находятся довольно далеко от палатки, в визит-центре, поэтому закрываются в 23:00 и открываются только в 9:00. Для ночующих гостей нет отдельной ванной или туалета (только один душ на все палатки).\nПоэтому туалеты не очень чистые и сильно переполнены, как только приезжают посетители.", "3sqceqii": "Отличное расположение и вид, удобства вроде туалетов и душа можно улучшить.\n+ Отличное расположение на территории национального парка с потрясающими видами на закат над каньоном\n- Нужны дополнительные туалеты и души для гостей глэмпинг-палаток: единственные туалеты, которыми мы могли пользоваться, находились в визит-центре, их использовали и все остальные посетители, и они были закрыты с 23:00 до 8:00. Также мы могли пользоваться только одним душем, и это был душ для персонала. Если бы само жильё было дешевле, я бы не возражал, но при такой цене считаю справедливым предложить как минимум два душа и отдельный туалет для гостей, которые останавливаются в палатках.", "1ao6m3k23": "Отличное расположение!\nСупер расположение в прекрасном ландшафте. Обычный стандарт!\nОчень дорого!", "1aixhl7ok": "Прекрасное место, но слишком дорого\n+ Мы ночевали в одной из палаток, которые вместе с несколькими домиками и юртами находятся на территории парка. Вид прекрасный, а поздним вечером и ранним утром можно ходить по каньону. Так вы избегаете толп. У палаток красивая терраса.\nНас дружелюбно встретил англоговорящий менеджер. Он показал, где можно припарковаться рядом с палаткой.\n- Вы платите абсолютно слишком много за то, что получаете, как здесь уже часто отмечали. Это единственный вариант с ночёвкой, и этим пользуются. Хотя несколько небольших дополнений уже улучшили бы ситуацию. Вам не дают даже полотенец или бутылки воды. Можно пользоваться только туалетами для посетителей в визит-центре. Они нечистые и закрываются на ночь. Поэтому ночью, по сути, все справляют нужду рядом со своей палаткой, а это неправильно. Жаль!", "1yih04c3x": "В целом всё хорошо.\nРасположение и вид из окна/с балкона\nЗдание нуждается в ремонте. За такую цену могли бы поставить в номере бутылки с водой.", "iktfde97": "Дотронуться до каньона пальцем!\nНам дали последнее свободное жильё, и у нас был полный вид на каньон (мы ничего не просили, ведь это ещё и наш медовый месяц).\nБезупречная чистота.\nБезупречное расположение.\nНе получилось позавтракать рано, пришлось ждать до 9 часов!\nЦены действительно очень высокие, а порции маленькие.", "17a16x741": "Отличный выбор для Чарынского каньона! Невероятно было просыпаться там, а все номера чистые и большие! Люди тоже очень дружелюбные!", "1yvp25wbm": "Ветхое, плохо обслуживаемое оборудование\nГель для душа — пустая бутылка, не заменили.\nГнилое дерево в ванной, полное отсутствие освещения на дороге к шале.\nНет затемняющих штор на ночь,\nПосредственный завтрак: без воды, без фруктов, без варенья или мёда... хлеб холодный и твёрдый..\nДойти пешком от ресепшена до шале трудно: чемоданы мы несли сами, без какой-либо помощи.", "1v6mb3zas": "Отличное расположение, прямо у каньона\nРасположение, конечно, супер, прямо у каньона, ошибиться невозможно, всё необходимое было на месте\nВо всём номере работала только одна из розеток, это было неудобно для чайника и зарядки телефона\nСлив в ванной тоже плохо пах, нужно было какое-то время проветривать, прежде чем можно было нормально находиться в номере", "1pwh7h12f": "Приятное пребывание\nБыло очень чисто и комфортно. Завтрак вкусный и сытный.", "9z7lgww7": "Чистое, комфортное жильё в отличном месте с видом на край ущелья.\nНаш домик был просторным и чистым, кровать удобной, кондиционер работал. С террасы открывался красивый вид. Учитывая удалённость, думаю, это довольно хорошо! Прочитав предыдущие отзывы, мы ожидали неприятных запахов в ванной, но всё было совсем неплохо.\nОстанавливаясь здесь на ночь, можно исследовать каньон вечером и рано утром, избегая самой жары и толп. Только не приходите слишком рано или поздно: нужно немного солнца на скалах, чтобы проявились цвета. Мы были очень рады, что сделали именно так.\nДа, это дорого, но мы останавливались в двух местах размещения в национальных парках, и цены там были схожими.\nСотрудники, которые нас заселяли, были сотрудниками национального парка, и они были не очень хорошо осведомлены. Я спросил про маршруты в других ущельях парка, и мне сказали, что есть только Чарынское ущелье. На сайте самого национального парка говорится о других ущельях. Один из сотрудников хотя бы слышал об одном из ущелий, но не знал, проезжа ли дорога. Мы пришли за советом и ничего не получили.", "say00bd8": "Нет туалета и душа, худший выбор для отдыха в горах\nГоры и местность\nНикогда не бронируйте там палатки. За 100$ в этих палатках нет туалета/душа. Для живущих там гостей не предусмотрено даже отдельного туалета или душа!\nНет воды, нет стаканов в палатках. Чувствуешь себя нежеланным гостем\nЭто не приватная территория. Вокруг ходят сотни людей, так что забудьте о спокойном времени в горах\nГрубый и недружелюбный персонал, которому на самом деле всё равно", "5lqvp87c": "Фантастическое место, чтобы насладиться Чарынским каньоном на рассвете без толп. Оснащение простое, но соответствует описанию на сайте. Хорошее кафе, где можно заказать завтрак и ужин с местными блюдами.\nПросто напоминание: нет горячей воды, но мы этого ожидали в таком месте.", "1kaxbbxr2": "Отличное расположение и приятная концепция, но это совсем не оправдывает цену за ночь.\n+ Отличное расположение прямо у каньона. Завтрак включён, это приятно. Наблюдение за звёздами ночью — обязательно.\n- В номере воняло — действительно так сильно, что нам пришлось проветривать его целый час. Интересно, не неисправна ли септическая система? Также совсем нет Wi-Fi, но, полагаю, этого стоит ожидать в таком удалённом месте. В номере к тому же не было воды. Телевизор не работает вообще. Горячую воду нужно включать вручную, и она долго нагревается — нам никто об этом не сказал, поэтому в конце дня мы принимали холодный душ, дожидаясь, пока прогреется бойлер. Ресторан при отеле очень дорогой и весьма средний: в половине случаев там нет того, что вы пытаетесь заказать. Ещё на ресепшене не говорят, что ресторан прекращает принимать заказы около 19:15, так что если не успели заказать до этого времени, останетесь голодными.", "pdvyzm7l": "Плохо и грязно\n+ расположение\n- в палатке не подметали, не пылесосили и не мыли. Простыни не меняют между разными гостями. На наволочке/простынях были пятна крови и волосы. На 10 палаток (20 человек) был всего 1 холодный душ.", "1afu0na6j": "Впечатляющее расположение и виды на каньон. Очень чистый и современный интерьер с собственной ванной и горячей водой. Кровати были удобными. Персонал был очень отзывчивым. Выдали коробки с завтраком, так как мы уезжали очень рано. Wi-Fi в домике не работал.", "95yn8c1j": "Почините кондиционеры\nОтличные виды\nХороший отель\nКондиционеры работают плохо", "816jid4t": "Вид был потрясающим. Просыпаться с видом на каньон и множество звёзд ночью. Туалеты были далеко. Нужны вентиляторы во второй половине дня, так как в палатке может быть жарко", "yysysj38": "Незабываемые впечатления в каньоне\nУникальное место, красиво оформленные/построенные домики. Внутри каньона", "k07ow643": "Идеальное расположение и поразительные виды.\nПалаткам нужно больше внимания: холодильник, уютное освещение и отдельные туалеты. Одного душа на всех недостаточно.", "4ix4g740": "Расположение, расположение, расположение. Мы проснулись в 5:30, дошли до реки... почти ни души... потрясающий опыт.\nТребуется некоторое обновление.", "1h23i4e5z": "Мне очень понравилось пребывание. Отель был чистым и комфортным, а сотрудники — невероятно дружелюбными и отзывчивыми. Всё было хорошо организовано, атмосфера спокойная и приветливая. Обязательно остановился бы здесь снова.", "1kgcim71w": "Лучшее место для туристов, чтобы остановиться, не пожалеете", "d0i6xabt": "Когда я бронировал этот отель, в объявлении было указано, что есть ванные общего пользования. Однако при заезде никаких общих ванных не оказалось.\nЭта поездка включает много пеших прогулок. Каждый день я сильно потел от жары, но, вернувшись в отель, не мог принять душ в общей ванной, что меня сильно расстроило.\nОтель ложно указал на своей странице общие ванные, и это является введением в заблуждение.", "pw3mp41z": "Мне очень нравится всё в этом месте, особенно спасибо Аиаулым 💙💙💙", "1etic7dbw": "Потрясающие впечатления рядом с Чарынским каньоном, с уникальной атмосферой и очень живописным окружением. Жильё сочетает современный комфорт с элементами местного дизайна, благодаря чему пребывание становится особенным и запоминающимся. Номера были стильными, чистыми и хорошо подготовленными, а персонал — приветливым и профессиональным. Идеальное расположение, чтобы посетить каньон рано утром или на закате. Одно из ярких событий нашей поездки по Казахстану.", "8in1tthf": "Отличное расположение и интерьеры, но есть над чем работать в сервисе! Расположение и виды из номера! Сам номер тоже оформлен очень хорошо: минималистичный, но красивый дизайн ♥️ — очень рекомендую остановиться здесь на ночь. Вишенка на торте — утренняя прогулка, когда весь каньон принадлежит только вам 🤩😃. Цены на высоком уровне. В моей ванной не работал вытяжной вентилятор, а индикация горячей и холодной воды была неправильной. Также за такую цену ожидал хороший завтрак, но разрешают выбрать только одно блюдо, так что пришлось доплатить даже за хлеб к омлету. Сумма очень небольшая, но она немного портит впечатление.", "inayxv9t": "Для командировочных не подходит. Завтрак был плохо организован, как и ужин в ресторане. Спа находится напротив отеля, прямого доступа нет. Шторы в номере недостаточно затемняют. Сенсорным экраном кондиционера LG очень трудно пользоваться. В ближайшем ночном клубе до 3 ночи играла громкая музыка.", "1vre1id3m": "Хорошо для короткого пребывания. Завтрак был замечательным, с красивым видом на город. Вода в бассейне была недостаточно чистой. :(", "1ag9ww032": "Отличное место для медитации и расслабления.\nЯ не нашёл здесь ничего плохого или неудобного. Моя личная рекомендация.", "1pc21ypax": "Отличный сервис благодаря хорошему сотруднику. Его зовут Ерулен. Он так хорошо обо мне позаботился, с настоящим стремлением помогать. Мы с друзьями заселялись в полночь, когда всё закрыто, но мы заранее предупредили сотрудника. Хотя в начале это казалось довольно жутким, вам не придётся ночевать на дороге в холоде. Вход довольно трудно заметить, особенно когда приезжаешь ночью.", "52b1rb6d": "Уникальный опыт в Чарынском каньоне. Домик отличный, очень круто иметь возможность остановиться прямо в каньоне. Мы смогли исследовать его на рассвете в одиночестве, до прихода толп. Завтрак был хорошим. Горячая вода была не очень горячей.", "3h5dsacn": "Красивый вид, расположен прямо у каньона, есть возможность совершать спокойные прогулки на рассвете или закате. У нас было бунгало, в ванной стоял запах канализации, из душа протекала вода, было нечисто.\nРесторан совершенно завышает цены. У нас был «завтрак включён», но нам разрешили выбрать только одно блюдо из ограниченной части меню, остальное оплачивалось отдельно, и кофе тоже надо было оплачивать (больше 5 € за один эспрессо). Персонал был недружелюбным.", "l9173k9l": "Непревзойдённое расположение рядом с Чарынским каньоном. Потрясающее пребывание прямо у Чарынского каньона. Если вы хотите увидеть его без толп рано утром или вечером, то здесь определённо стоит остановиться. Хороший завтрак, хотя выбор был немного ограничен. Завтрак был очень вкусным, но было бы здорово иметь больше выбора (например, кофе, а не только чай).", "57v47o6o": "Лучший отель и лучший вид, какие я когда-либо видел.\nМой муж получил травму, но персонал отеля взял на себя ответственность и отвёз его в больницу. Очень хороший отель. Рекомендую всем любителям путешествий поехать туда и провести время.\nС любовью из Индии", "112tgwt4v": "Вид хороший. Сотрудники курорта угрюмые, хорошего сервиса не предлагают. Нет Wi-Fi.. нет адаптеров… нет воды… воду принесли только после нашей просьбы", "1gel5d51w": "Очень хорошее место для проживания с супер красивым видом. Очень рекомендую.", "ky1nsvv": "Красивый отель, дружелюбный персонал", "57yxo086": "Потрясающее расположение... просто восхитительно просыпаться и дышать свежим горным воздухом. Прогулка вдоль ручья неподалёку ведёт к водопаду... в целом чудесные впечатления.\n\nРестораны закрываются в 19:00... нас не предупредили об этом при заселении. В тот вечер пришлось остаться без ужина", "10oydkw4s": "Нормально, но обратите внимание:\n\nПерсонал любезный, хотя было бы лучше, если бы он говорил больше по-английски. Кухня слишком рано закрывается на ужин, а поблизости нет альтернатив.", "1ucgzbrun": "Взлёты и падения, но нам понравилось\n\nУ этого места были настоящие взлёты и падения. Я бы хорошенько всё взвесил, прежде чем здесь останавливаться: в целом нам понравилось, но для вас минусы могут оказаться решающими!\n\nПлюсы:\n\n• Расположение невероятное. Если для вас важно избежать толп и смотреть закат, не выходя из номера, это то самое место\n\n• Номера комфортные, просторные, ванные вполне приличные\n\n• Путь от домиков до ресторана очень короткий (~2 м)\n\nМинусы:\n\n• Заселение организовано плохо. Сотрудник несколько минут нас игнорировал, а когда мы попросили заселиться чуть раньше, показал бумагу с требованием предоплаты 50% стоимости номера. Когда мы попросили просто проверить, готов ли номер, он разрешил нам пойти заселиться в пустой номер. Позже этот сотрудник был вполне любезен, так что в целом не сказал бы, что персонал плохой, но заселение явно нужно улучшить\n\n• Выбор еды ограничен, ресторан на территории был нормальным, но медленным и дорогим. Завтрак подали с опозданием на 30 минут, а это проблема, когда он начинается только в 9:00, а нам нужно было уезжать", "1h5q5kyha": "В Семее есть места получше. Это было сильно завышено по цене для того, что предлагалось.\n\nРасположение было отличным. Кровать удобная, косметика — L’Occitane.\n\nК сожалению, сервис не оправдывал цену. Спа и бассейн были закрыты. Трансфера из аэропорта нет (ни платного, ни бесплатного). За две ночи проживания в номере не убирали, несмотря на то, что мы вывесили карточку с просьбой об уборке. Кроме того, в завтраке, который был включён, фрукты и овощи были заветренными и потемневшими, подавались остатки со вчерашнего вечера, а выбор был ограничен. В итальянском ресторане была доступна только половина меню.", "1w15dlya2": "Мне понравился путь до отеля на УАЗе. Это целое приключение. Заселение прошло гладко. Номер просторный, с обогревателем. Вид просто потрясающий. А ещё мы завтракали с видом на эти волшебные пейзажи.\n\nЭлектричество не очень стабильное. Но учтите, что объект находится в удалённом месте. Думаю, они используют солнечные батареи и генератор. Но пока это терпимо.", "1b86s1a1m": "Завтрак немного далеко и очень скромный, но всё равно того стоит", "98yabg7t": "Один из худших отелей на озере Кольсай и в соседних посёлках, очень плохой сервис, сотрудники не идут навстречу, сотрудник на ресепшене проявил агрессию к гостю, обманул с деньгами. 0 звёзд — и то слишком много для этого отеля, нет горячей воды, не работает интернет, электричество отключалось.", "10ninwsb": "Очень здорово"};
+let RATINGS = [], CATS = [], RATING_DATE = null, RATING_PREV = null;
 
-  function pluralRu(n) {
-    if (n === 1) return "звезду";
-    if (n >= 2 && n <= 4) return "звезды";
-    return "звёзд";
+/* Эти отели не ведём в дашборде */
+const EXCLUDED = ['Pana Ainakol', 'Pana Boutique'];
+rows.splice(0, rows.length, ...rows.filter(r => !EXCLUDED.includes(r.loc)));
+
+/* Нормализация */
+function prepRows() { rows.forEach(r => {
+  const t = (r.type || "").toUpperCase();
+  if (t.includes("НЕГАТИВ")) r.typeNorm = "Отрицательный";
+  else if (t.includes("ПОЗИТИВ")) r.typeNorm = "Положительный";
+  else if (t.includes("НЕЙТРАЛ")) r.typeNorm = "Нейтральный";
+  else r.typeNorm = "—";
+
+  const v = (r.valid || "").trim().toLowerCase().replace(/ё/g, 'е');
+  if (v === "обосновано" || v === "обоснованно" || v === "обоснован") r.validNorm = "Обоснованно";
+  else if (v.includes("не обоснов") || v.includes("необоснов")) r.validNorm = "Не обоснованно";
+  else r.validNorm = "";
+}); }
+
+/* ============================================================
+   2. ОТЕЛИ — ВАШ РЕЙТИНГ + СПРАВОЧНО 2ГИС
+   ============================================================ */
+let locations = [];
+function buildLocations() {
+  const ds = [...new Set(RATINGS.map(r => r.date))].sort(), L = ds[ds.length-1], Pv = ds[ds.length-2];
+  const at = (d, h) => RATINGS.find(r => r.date === d && r.hotel === h);
+  locations = RATINGS.filter(r => r.date === L).map(r => { const p = Pv && at(Pv, r.hotel);
+    return { name: r.hotel, gis: r.gis || 0, gisPrev: p && p.gis != null ? p.gis : (r.gis || 0), booking: r.booking, bookingPrev: p && p.booking != null ? p.booking : r.booking }; });
+  RATING_DATE = L || null; RATING_PREV = Pv || null;
+}
+
+let REG_END = (() => { const d = new Date(); return `${String(d.getDate()).padStart(2,"0")}.${String(d.getMonth()+1).padStart(2,"0")}.${d.getFullYear()}`; })();
+/* Периоды: строятся из реестра по выбранному режиму (4 недели / 6 месяцев / 4 квартала) */
+const isoD = d => (d||'').split('.').reverse().join('-');
+const typeKey = {neg:'Отрицательный', pos:'Положительный'};
+const MSHORT = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+const p2 = n => String(n).padStart(2,'0'), isoS = x => `${x.getFullYear()}-${p2(x.getMonth()+1)}-${p2(x.getDate())}`, dmS = x => `${p2(x.getDate())}.${p2(x.getMonth()+1)}`;
+let DATA_END = (() => { const m = isoD(REG_END); const [y,mo,dd] = m.split('-').map(Number); return new Date(y, mo-1, dd); })();
+let periodMode = 'weeks', PERIODS = [], chartHotel = '';
+function buildPeriods(mode) {
+  const out = [], E = DATA_END;
+  if (mode === 'weeks') {
+    for (let i = 3; i >= 0; i--) { const to = new Date(E); to.setDate(E.getDate() - 7*i); const fr = new Date(to); fr.setDate(to.getDate() - 6); out.push({ label: dmS(fr)+'–'+dmS(to), from: isoS(fr), to: isoS(to) }); }
+  } else if (mode === 'months') {
+    for (let i = 5; i >= 0; i--) { const f = new Date(E.getFullYear(), E.getMonth()-i, 1), t = new Date(f.getFullYear(), f.getMonth()+1, 0); const part = i === 0 && E < t; out.push({ label: MSHORT[f.getMonth()] + ' ' + String(f.getFullYear()).slice(2) + (part ? '*' : ''), from: isoS(f), to: isoS(part ? E : t) }); }
+  } else {
+    const q = Math.floor(E.getMonth()/3);
+    for (let i = 3; i >= 0; i--) { const f = new Date(E.getFullYear(), (q-i)*3, 1), t = new Date(f.getFullYear(), f.getMonth()+3, 0); const part = i === 0 && E < t; out.push({ label: 'Q' + (Math.floor(f.getMonth()/3)+1) + ' ' + f.getFullYear() + (part ? '*' : ''), from: isoS(f), to: isoS(part ? E : t) }); }
+  }
+  return out;
+}
+PERIODS = buildPeriods(periodMode);
+function cntP(name, k, i) {
+  const p = PERIODS[i];
+  return rows.filter(r => (!name || r.loc === name) && r.typeNorm === typeKey[k] && isoD(r.date) >= p.from && isoD(r.date) <= p.to).length;
+}
+function setPeriodMode(m) {
+  periodMode = m; PERIODS = buildPeriods(m);
+  document.querySelectorAll('.seg button').forEach(b => b.classList.toggle('on', b.dataset.m === m));
+  renderPeriodTrends(); renderHotelTrends();
+}
+const bkBadge = x => x == null ? '<span style="color:var(--text-mute)">—</span>' : `<span class="bk">${x.toFixed(1).replace('.', ',')}</span>`;
+const avgR = a => { a = a.filter(x => x > 0); return a.length ? a.reduce((s,x)=>s+x,0)/a.length : null; };
+
+/* ============================================================
+   3. УТИЛИТЫ
+   ============================================================ */
+function showTab(index, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('panel-' + index).classList.add('active');
+  if (index === 2) renderCal();
+}
+
+/* ──────────────────────────────────────────────────────────
+   ОЦЕНКА ТРЕНДА
+   ──────────────────────────────────────────────────────────
+   Правила:
+     1. Если оба периода 0 → БЕЗ ИЗМЕНЕНИЙ (нечего улучшать)
+     2. Негатив (betterWhen='down'):
+        - упал (Δ<0)  → УЛУЧШЕНИЕ  🟢
+        - вырос (Δ>0) → УХУДШЕНИЕ  🔴
+     3. Позитив (betterWhen='up'):
+        - вырос (Δ>0) → УЛУЧШЕНИЕ  🟢
+        - упал (Δ<0)  → УХУДШЕНИЕ  🔴
+   ────────────────────────────────────────────────────────── */
+function evaluateTrend(p1, p2, betterWhen) {
+  /* Оба нуля → без изменений */
+  if (p1 === 0 && p2 === 0) {
+    return {
+      cls: 'neutral',
+      arrow: '•',
+      badgeCls: 'flat',
+      label: '⚪ БЕЗ ИЗМЕНЕНИЙ',
+      valStr: '0',
+      pctStr: '—'
+    };
   }
 
-  let currentLang = "ru";
+  const diff = p2 - p1;
 
-  /* === ССЫЛКИ 2ГИС ДЛЯ МОБИЛЬНЫХ (карточка отеля) === */
-  const GIS_LINKS_MOBILE = {
-    kainar:        "https://2gis.kz/shymkent/firm/70000001026514225",
-    ayusai:        "https://2gis.kz/almaty/firm/70000001095525547",
-    nomad_kolsay:  "https://2gis.kz/almaty/firm/70000001095525626",
-    unique_charyn: "https://2gis.kz/almaty/firm/70000001114038277",
-    unique_semey:  "https://2gis.kz/semej/firm/70000001106039532",
-    unique_kolsay: "https://2gis.kz/almaty/firm/70000001114248247"
-  };
-
-  /* === ССЫЛКИ 2ГИС ДЛЯ ВЕБ (форма отзыва) === */
-  const GIS_LINKS_DESKTOP = {
-    kainar:        "https://2gis.kz/shymkent/firm/70000001026514225/tab/reviews/addreview",
-    ayusai:        "https://2gis.kz/almaty/firm/70000001095525547/tab/reviews/addreview",
-    nomad_kolsay:  "https://2gis.kz/almaty/firm/70000001095525626/tab/reviews/addreview",
-    unique_charyn: "https://2gis.kz/almaty/firm/70000001114038277/tab/reviews/addreview",
-    unique_semey:  "https://2gis.kz/semej/firm/70000001106039532/tab/reviews/addreview",
-    unique_kolsay: "https://2gis.kz/almaty/firm/70000001114248247/tab/reviews/addreview"
-  };
-
-  const HOTEL_NAMES = {
-    kainar:        "Kainar Hotel",
-    ayusai:        "Pana Ayusai",
-    nomad_kolsay:  "Nomad Kolsay",
-    unique_charyn: "Pana Unique Charyn",
-    unique_semey:  "Pana Unique Semey",
-    unique_kolsay: "Pana Unique Kolsay"
-  };
-
-  const WHATSAPP_NUMBER = "77018615121";
-
-  /* === ОПРЕДЕЛЕНИЕ МОБИЛЬНОГО УСТРОЙСТВА === */
-  function isMobile() {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-      || (window.matchMedia && window.matchMedia("(max-width: 768px)").matches);
+  /* Оба одинаковые → без изменений */
+  if (diff === 0) {
+    return {
+      cls: 'neutral',
+      arrow: '•',
+      badgeCls: 'flat',
+      label: '⚪ БЕЗ ИЗМЕНЕНИЙ',
+      valStr: '0',
+      pctStr: '0%'
+    };
   }
 
-  const hotelItems = document.querySelectorAll(".hotel-item");
-  const ratingBlock = document.getElementById("ratingBlock");
-  const stars = document.querySelectorAll(".star");
-  const hint = document.getElementById("hint");
-  const submitBtn = document.getElementById("submit");
+  const pct = p1 !== 0 ? ((diff / p1) * 100) : null;
+  const pctStr = pct !== null ? `${diff > 0 ? '+' : ''}${pct.toFixed(1)}%` : '—';
+  const sign = diff > 0 ? '+' : '';
+  const valStr = `${sign}${diff}`;
+  const arrow = diff > 0 ? '▲' : '▼';
 
-  let selectedHotel = null;
-  let rating = 0;
+  /* Стало лучше или хуже для бизнеса? */
+  let isBetter;
+  if (betterWhen === 'down') {
+    isBetter = diff < 0; // меньше = лучше
+  } else {
+    isBetter = diff > 0; // больше = лучше
+  }
 
-  const langButtons = document.querySelectorAll(".lang-btn");
+  return {
+    cls: isBetter ? 'better' : 'worse',
+    arrow,
+    badgeCls: isBetter ? 'better' : 'worse',
+    label: isBetter ? '🟢 УЛУЧШЕНИЕ' : '🔴 УХУДШЕНИЕ',
+    valStr,
+    pctStr
+  };
+}
 
-  langButtons.forEach(btn => {
-    btn.addEventListener("click", () => {
-      currentLang = btn.dataset.lang;
-      langButtons.forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      applyLanguage();
-    });
+/* ============================================================
+   4. СТАТИСТИКА
+   ============================================================ */
+function renderStats() {
+  const total   = rows.length;
+  const neg     = rows.filter(r => r.typeNorm === "Отрицательный").length;
+  const pos     = rows.filter(r => r.typeNorm === "Положительный").length;
+  const neu     = rows.filter(r => r.typeNorm === "Нейтральный").length;
+  const closed  = rows.filter(r => r.validNorm !== "").length;
+  const noAns   = rows.filter(r => (r.contact || "").toLowerCase().includes("не вышел")).length;
+  const just    = rows.filter(r => r.validNorm === "Обоснованно").length;
+  const withoutComp = rows.filter(r => r.comp === "Без компенсации").length;
+
+  const negPercent = total ? ((neg/total)*100).toFixed(1) : 0;
+
+  const cards = [
+    { cls:'info',     icon:'📊', title:'Всего отзывов',    value: total,       sub:'с начала года',                filter:null },
+    { cls:'negative', icon:'🔴', title:'Отрицательных',    value: neg,         sub:`${negPercent}% от всех`,   filter:{field:'typeNorm', value:'Отрицательный', label:'Отрицательные отзывы'} },
+    { cls:'positive', icon:'🟢', title:'Положительных',    value: pos,         sub:'хвалят отель',             filter:{field:'typeNorm', value:'Положительный', label:'Положительные отзывы'} },
+    { cls:'warning',  icon:'🟡', title:'Нейтральных',      value: neu,         sub:'без эмоций',               filter:{field:'typeNorm', value:'Нейтральный', label:'Нейтральные отзывы'} },
+    { cls:'gold',     icon:'⚖️', title:'Обоснованных',     value: just,        sub:'жалобы подтверждены',      filter:{field:'validNorm',value:'Обоснованно', label:'Обоснованные жалобы'} },
+    { cls:'gold',     icon:'💰', title:'Без компенсации',  value: withoutComp, sub:'жалобы без выдачи',        filter:{field:'comp',     value:'Без компенсации', label:'Без компенсации'} },
+    { cls:'info',     icon:'📵', title:'Гость не на связи',value: noAns,       sub:'не удалось связаться',     filter:null },
+    { cls:'warning',  icon:'⚙️', title:'Обработанных',     value: closed,      sub:'с отметкой о статусе',     filter:null },
+    { cls:'positive', icon:'🎁', title:'С компенсацией',   value: rows.filter(r => r.comp && r.comp !== 'Без компенсации').length, sub:'выдана компенсация', filter:null }
+  ];
+
+  document.getElementById('statsCards').innerHTML = cards.map(c => `
+    <div class="stat-card ${c.cls}" ${c.filter ? `onclick="applyFilter('${c.filter.field}','${c.filter.value}','${c.filter.label}')"` : ''}>
+      ${c.filter ? '<span class="hint">клик →</span>' : ''}
+      <div class="stat-icon">${c.icon}</div>
+      <div class="stat-title">${c.title}</div>
+      <div class="stat-value">${c.value}</div>
+      <div class="stat-sub">${c.sub}</div>
+    </div>
+  `).join('');
+}
+
+/* ============================================================
+   5. ДИНАМИКА ПО ПЕРИОДАМ
+   ============================================================ */
+
+function renderPeriodTrends() {
+  const N = PERIODS.length, K = PERIODS[N-1].label.endsWith("*") ? N-2 : N-1, DN = (K < N-1 ? " · "+PERIODS[N-1].label.replace("*","")+" неполный (до "+dmS(DATA_END)+"), в Δ не входит" : "");
+  document.getElementById('pb').textContent = 'данные по ' + dmS(DATA_END) + '.' + DATA_END.getFullYear();
+  const sum = k => PERIODS.map((_, i) => locations.reduce((s, l) => s + cntP(l.name, k, i), 0));
+  const items = [
+    { label:"🔴 Отрицательные", vals: sum('neg'), betterWhen:"down" },
+    { label:"🟢 Положительные", vals: sum('pos'), betterWhen:"up" }
+  ];
+  const head = `<thead><tr><th>Метрика</th>${PERIODS.map(p => `<th style="text-align:center">${p.label}</th>`).join('')}<th style="text-align:center">Δ</th><th style="text-align:center">%</th><th style="text-align:center">Итог</th></tr></thead>`;
+  document.getElementById('periodTrends').innerHTML = `
+    <div class="trend-card" style="grid-column: 1 / -1;">
+      <h3>📅 Ключевые метрики ${({weeks:'по неделям',months:'по месяцам',quarters:'по кварталам'})[periodMode]}<span class="note">Δ: ${PERIODS[K].label} к ${PERIODS[K-1].label}${DN}${PERIODS[K].label.endsWith('*') ? ' · * период неполный (до ' + dmS(DATA_END) + ')' : ''}</span></h3>
+      <table class="trend-table">${head}<tbody>
+        ${items.map(it => {
+          const t = evaluateTrend(it.vals[K-1], it.vals[K], it.betterWhen);
+          return `<tr><td class="loc">${it.label}</td>${it.vals.map(v => `<td class="num">${v}</td>`).join('')}
+            <td style="text-align:center"><span class="delta ${t.cls}"><span class="arrow">${t.arrow}</span>${t.valStr}</span></td>
+            <td style="text-align:center"><span class="delta ${t.cls}">${t.pctStr}</span></td>
+            <td style="text-align:center"><span class="trend-badge ${t.badgeCls}">${t.label}</span></td></tr>`;
+        }).join('')}
+      </tbody></table>
+    </div>`;
+}
+
+/* ============================================================
+   6. ТРЕНДЫ ПО ОТЕЛЯМ
+   ============================================================ */
+function renderHotelTrends() {
+  const N = PERIODS.length, K = PERIODS[N-1].label.endsWith("*") ? N-2 : N-1, DN = (K < N-1 ? " · "+PERIODS[N-1].label.replace("*","")+" неполный (до "+dmS(DATA_END)+"), в Δ не входит" : "");
+  const data = locations.map(l => ({ name:l.name, neg: PERIODS.map((_, i) => cntP(l.name,'neg',i)), pos: PERIODS.map((_, i) => cntP(l.name,'pos',i)) }));
+  const delta = (x, k) => x[k][K] - x[k][K-1];
+  const negRows = data.slice().sort((a,b) => delta(a,'neg') - delta(b,'neg'));
+  const posRows = data.slice().sort((a,b) => delta(b,'pos') - delta(a,'pos'));
+  const head = `<thead><tr><th>Отель</th>${PERIODS.map(p => `<th style="text-align:center">${p.label}</th>`).join('')}<th style="text-align:center">Δ</th><th style="text-align:center">%</th><th style="text-align:center">Итог</th></tr></thead>`;
+  const renderTable = (list, key, betterWhen) => `
+    <table class="trend-table">${head}<tbody>
+      ${list.map(l => {
+        const t = evaluateTrend(l[key][K-1], l[key][K], betterWhen);
+        return `<tr><td class="loc">${l.name}</td>${l[key].map(v => `<td class="num">${v}</td>`).join('')}
+          <td style="text-align:center"><span class="delta ${t.cls}"><span class="arrow">${t.arrow}</span>${t.valStr}</span></td>
+          <td style="text-align:center"><span class="delta ${t.cls}">${t.pctStr}</span></td>
+          <td style="text-align:center"><span class="trend-badge ${t.badgeCls}">${t.label}</span></td></tr>`;
+      }).join('')}
+    </tbody></table>`;
+  document.getElementById('hotelTrends').innerHTML = `
+    <div class="trend-card"><h3>🔴 Динамика негативных отзывов<span class="note">меньше = лучше · Δ: ${PERIODS[K].label} к ${PERIODS[K-1].label}${DN}</span></h3>${renderTable(negRows,'neg','down')}</div>
+    <div class="trend-card"><h3>🟢 Динамика положительных отзывов<span class="note">больше = лучше · Δ: ${PERIODS[K].label} к ${PERIODS[K-1].label}${DN}</span></h3>${renderTable(posRows,'pos','up')}</div>`;
+}
+
+/* Рейтинги площадок: 2ГИС (было → сейчас) и Booking (из 10) */
+function renderRatings() {
+  const fmt = (x, d=1) => x == null ? '—' : x.toFixed(d);
+  const rowsH = locations.map(l => {
+    const d = +(l.gis - l.gisPrev).toFixed(1);
+    const bd = l.booking != null && l.bookingPrev != null ? +(l.booking - l.bookingPrev).toFixed(1) : 0, bdh = bd ? ` <span style="font-size:11px;font-weight:700;color:${bd>0?'#16a34a':'#dc2626'}">${bd>0?'▲ +':'▼ '}${bd.toFixed(1).replace('.', ',')}</span>` : '';
+    const dc = d > 0 ? 'better' : d < 0 ? 'worse' : 'neutral';
+    const rv = avgR(rows.filter(r => r.loc === l.name).map(r => r.rating));
+        return `<tr><td class="loc">${l.name}</td><td class="num">${fmt(l.gisPrev)}</td><td class="num">${fmt(l.gis)}</td>
+      <td style="text-align:center"><span class="delta ${dc}">${d>0?'▲ +':d<0?'▼ ':'• '}${d===0?'0':d.toFixed(1)}</span></td>
+      <td class="num">${bkBadge(l.booking)}${bdh}</td><td class="num">${fmt(rv)}</td></tr>`;
+  }).join('');
+  const g = locations.reduce((s,l)=>s+l.gis,0)/locations.length, gp = locations.reduce((s,l)=>s+l.gisPrev,0)/locations.length;
+  const bl = locations.filter(l => l.booking != null), bavg = bl.length ? bl.reduce((s,l)=>s+l.booking,0)/bl.length : null;
+  const dd = +(g-gp).toFixed(2);
+  document.getElementById('ratingsTable').innerHTML = `
+    <div class="trend-card" style="grid-column: 1 / -1;">
+      <h3>⭐ Оценки: 2ГИС и Booking<span class="note">2ГИС — из 5, Booking — из 10 · «Отзывы» — средняя оценка из реестра · снимки рейтинга: ${RATING_PREV ? RATING_PREV.split("-").reverse().join(".") : "—"} → ${RATING_DATE ? RATING_DATE.split("-").reverse().join(".") : "—"}</span></h3>
+      <table class="trend-table"><thead><tr><th>Отель</th><th style="text-align:center">2ГИС было</th><th style="text-align:center">2ГИС сейчас</th><th style="text-align:center">Δ</th><th style="text-align:center">Booking</th><th style="text-align:center">Отзывы</th></tr></thead>
+      <tbody>${rowsH}
+        <tr style="background:#fffdf5"><td class="loc">Средняя по сети</td><td class="num">${gp.toFixed(2)}</td><td class="num">${g.toFixed(2)}</td>
+          <td style="text-align:center"><span class="delta ${dd>0?'better':dd<0?'worse':'neutral'}">${dd>0?'▲ +':dd<0?'▼ ':'• '}${dd===0?'0':dd.toFixed(2)}</span></td>
+          <td class="num">${bkBadge(bavg)}</td><td class="num">${fmt(avgR(rows.map(r=>r.rating)))}</td></tr>
+      </tbody></table>
+    </div>`;
+}
+
+/* ============================================================
+   7. СЕТКА ОТЕЛЕЙ
+   ============================================================ */
+function renderLocations() {
+  const grid = document.getElementById('locationsGrid');
+  const items = locations.map(l => {
+    const negCount = rows.filter(r => r.loc === l.name && r.typeNorm === 'Отрицательный').length;
+    const posCount = rows.filter(r => r.loc === l.name && r.typeNorm === 'Положительный').length;
+    const totalLoc = rows.filter(r => r.loc === l.name).length;
+    const r = l.gis;
+    const cls = r < 4.0 ? 'low' : r < 4.7 ? 'mid' : 'good';
+    const d = +(l.gis - l.gisPrev).toFixed(1);
+    const chg = d ? `<div class="gis-rating" style="font-weight:700;color:${d>0?'#16a34a':'#dc2626'}">${d>0?'▲':'▼'} было ${l.gisPrev.toFixed(1)} → ${l.gis.toFixed(1)}</div>` : '';
+    return `
+      <div class="loc-card" onclick="applyFilter('loc','${l.name}','Отель: ${l.name}')" title="Клик → фильтр">
+        <div style="flex:1;min-width:0">
+          <div class="loc-name">${l.name}</div>
+          <div class="loc-meta"><span class="neg">🔴 ${negCount}</span><span class="pos">🟢 ${posCount}</span><span>📊 ${totalLoc}</span></div>
+        </div>
+        <div class="loc-rating-block">
+          <div class="loc-rating ${cls}"><span class="star">★</span>${r.toFixed(1)}</div>
+          <div class="gis-rating">2ГИС</div>${chg}
+          <div class="gis-rating" style="display:flex;align-items:center;gap:6px">Booking ${bkBadge(l.booking)}</div>
+        </div>
+      </div>`;
+  }).join('');
+  const avg = (locations.reduce((a,b)=>a+b.gis,0) / locations.length).toFixed(2);
+  const bl = locations.filter(l => l.booking != null), bavg = bl.length ? (bl.reduce((a,b)=>a+b.booking,0)/bl.length).toFixed(1) : '—';
+  grid.innerHTML = items + `
+    <div class="loc-card" style="border-left-color:var(--gold);background:#fffdf5">
+      <div style="flex:1"><div class="loc-name" style="color:var(--gold)">Средняя по сети</div><div class="loc-meta"><span>${locations.length} отелей</span></div></div>
+      <div class="loc-rating-block"><div class="loc-rating good"><span class="star">★</span>${avg}</div><div class="gis-rating">2ГИС</div><div class="gis-rating" style="display:flex;align-items:center;gap:6px">Booking ${bkBadge(bl.length ? bl.reduce((a,b)=>a+b.booking,0)/bl.length : null)}</div></div>
+    </div>`;
+}
+
+/* ============================================================
+   8. РАЗБИВКИ
+   ============================================================ */
+function countBy(field, filterFn) {
+  const map = {};
+  rows.forEach(r => {
+    if (filterFn && !filterFn(r)) return;
+    const key = (r[field] || "—").trim() || "—";
+    map[key] = (map[key] || 0) + 1;
   });
+  return Object.entries(map).sort((a,b) => b[1] - a[1]);
+}
 
-  function applyLanguage() {
-    const t = TRANSLATIONS[currentLang];
+function renderBreakdown(title, entries, color, field) {
+  if (!entries.length) return "";
+  const max = Math.max(...entries.map(e => e[1]));
+  const totalCount = entries.reduce((s, e) => s + e[1], 0);
+  return `
+    <div class="breakdown">
+      <h3>${title}</h3>
+      <table>
+        ${entries.map(([key, val]) => {
+          const width = Math.max(3, Math.round(val / max * 70));
+          const pct = Math.round(val / totalCount * 100);
+          const safeKey = key.replace(/'/g, "\\'");
+          return `<tr onclick="applyFilter('${field}','${safeKey}','${title.replace(/^[^ ]+ /,'')}: ${safeKey}')">
+            <td><span class="bar ${color}" style="width:${width}px"></span>${key}</td>
+            <td>${val} <span style="color:var(--text-mute);font-weight:400;font-size:11px">(${pct}%)</span></td>
+          </tr>`;
+        }).join('')}
+      </table>
+    </div>
+  `;
+}
 
-    document.querySelectorAll("[data-i18n]").forEach(el => {
-      const key = el.dataset.i18n;
-      if (t[key]) el.textContent = t[key];
-    });
+function renderBreakdowns() {
+  const byChannel = countBy('channel');
+  const byCity    = countBy('city', r => r.city && r.city.trim() !== "");
+  const byCat     = countBy('cat', r => r.cat && r.cat.trim() !== "");
+  const byValid   = countBy('validNorm', r => r.validNorm && r.validNorm.trim() !== "");
+  const byType    = countBy('typeNorm');
+  const byLoc     = countBy('loc');
 
-    if (rating > 0) {
-      hint.textContent = t.ratingSet(rating);
-    } else {
-      hint.textContent = t.hint;
-    }
+  document.getElementById('breakdowns').innerHTML = `
+    ${renderBreakdown('📱 По каналам',           byChannel, 'info',     'channel')}
+    ${renderBreakdown('🏙️ По городам',           byCity,    'gold',     'city')}
+    ${renderBreakdown('📊 По типам отзывов',     byType,    'positive', 'typeNorm')}
+    ${renderBreakdown('🏷️ По категориям жалоб',  byCat,     'negative', 'cat')}
+    ${renderBreakdown('✅ По обоснованности',    byValid,   'warning',  'validNorm')}
+    ${renderBreakdown('🏨 По отелям',            byLoc,     'info',     'loc')}
+  `;
+}
 
-    document.documentElement.lang = currentLang === "kz" ? "kk" : currentLang;
+/* ============================================================
+   9. ТАБЛИЦА
+   ============================================================ */
+const tbody = document.getElementById('tbody');
+let currentFilter = null;
+
+function renderRows() {
+  tbody.innerHTML = "";
+  let data = rows;
+  if (currentFilter) {
+    data = rows.filter(r => r[currentFilter.field] === currentFilter.value);
   }
 
-  hotelItems.forEach(item => {
-    item.addEventListener("click", () => {
-      hotelItems.forEach(i => i.classList.remove("selected"));
-      item.classList.add("selected");
-      selectedHotel = item.dataset.key;
-      ratingBlock.classList.add("enabled");
-      checkReady();
-    });
-  });
+  const cf = document.getElementById('cityF').value, hf = document.getElementById('hotelF').value, tf = document.getElementById('typeF').value, chf = document.getElementById('chanF').value;
+  if (cf) data = data.filter(r => r.city === cf);
+  if (hf) data = data.filter(r => r.loc === hf);
+  if (tf) data = data.filter(r => r.typeNorm === tf);
+  if (chf) data = data.filter(r => r.channel === chf);
+  const df = document.getElementById('dFrom').value, dt = document.getElementById('dTo').value;
+  if (df) data = data.filter(r => isoD(r.date) >= df);
+  if (dt) data = data.filter(r => isoD(r.date) <= dt);
 
-  stars.forEach(star => {
-    star.addEventListener("click", () => {
-      rating = parseInt(star.dataset.value, 10);
-      updateStars(rating);
-      hint.textContent = TRANSLATIONS[currentLang].ratingSet(rating);
-      hint.classList.add("filled");
-      checkReady();
-    });
-    star.addEventListener("mouseenter", () => updateStars(parseInt(star.dataset.value, 10)));
-  });
+  data.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.style.cursor = 'pointer';
+    tr.onclick = () => openReview(rows.indexOf(r));
+    if (r.typeNorm === "Отрицательный") tr.classList.add('negative');
+    else if (r.typeNorm === "Положительный") tr.classList.add('positive');
+    else if (r.typeNorm === "Нейтральный") tr.classList.add('neutral');
 
-  document.getElementById("stars").addEventListener("mouseleave", () => updateStars(rating));
+    const cells = [
+      { cls:'col-date',    val: r.date },
+      { cls:'col-name',    val: r.name || "—" },
+      { cls:'col-city',    val: r.city },
+      { cls:'col-loc',     val: r.loc },
+      { cls:'col-channel', val: r.channel },
+      { cls:'col-type',    val: r.typeNorm, badge: true },
+      { cls:'col-cat',     val: r.cat || "—" },
+      { cls:'col-status',  val: r.status },
+      { cls:'col-valid',   val: r.valid || "—" },
+      { cls:'col-comp',    val: r.comp || "—" },
+      { cls:'col-measures',val: r.measures || "—" },
+      { cls:'col-desc',    val: r.desc },
+      { cls:'col-emp',     val: r.emp || "—" },
+      { cls:'col-rating',  val: `★ ${r.rating}`, rating: true },
+      { cls:'col-post',    val: r.post || "—" },
+      { cls:'col-contact', val: r.contact || "—" },
+      { cls:'col-problem', val: r.problem || "—" },
+      { cls:'col-dec',     val: r.decision || "—" }
+    ];
 
-  function updateStars(value) {
-    stars.forEach(s => {
-      s.classList.toggle("active", parseInt(s.dataset.value, 10) <= value);
-    });
-  }
+    cells.forEach(c => {
+      const td = document.createElement('td');
+      td.className = c.cls;
 
-  function checkReady() {
-    submitBtn.disabled = !(selectedHotel && rating > 0);
-  }
-
-  submitBtn.addEventListener("click", () => {
-    if (!selectedHotel || !rating) return;
-    const hotelName = HOTEL_NAMES[selectedHotel];
-    const t = TRANSLATIONS[currentLang];
-
-    if (rating <= 3) {
-      // 1–3 звезды → WhatsApp
-      const text = t.waText(hotelName, rating);
-      window.location.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
-    } else {
-      // 4–5 звёзд → 2ГИС
-      if (isMobile()) {
-        // На телефоне — карточка отеля (откроется в приложении)
-        window.location.href = GIS_LINKS_MOBILE[selectedHotel];
+      if (c.badge) {
+        const cls = c.val === "Отрицательный" ? "neg" : c.val === "Положительный" ? "pos" : "neu";
+        td.innerHTML = `<span class="badge-type ${cls}">${c.val}</span>`;
+      } else if (c.rating) {
+        td.innerHTML = `<span class="rating-star">${c.val}</span>`;
       } else {
-        // На компьютере — сразу форма отзыва в браузере
-        window.open(GIS_LINKS_DESKTOP[selectedHotel], "_blank", "noopener,noreferrer");
+        td.textContent = c.val || "";
       }
-    }
-  });
+      tr.appendChild(td);
+    });
 
-  applyLanguage();
+    tbody.appendChild(tr);
+  });
+  updateCounter();
+}
+
+function updateCounter() {
+  const visible = tbody.querySelectorAll('tr').length;
+  const neg = tbody.querySelectorAll('tr.negative').length;
+  const pos = tbody.querySelectorAll('tr.positive').length;
+  document.getElementById('counter').textContent =
+    `Показано: ${visible}  |  🔴 ${neg}  |  🟢 ${pos}`;
+}
+
+/* ============================================================
+   10. ФИЛЬТРЫ
+   ============================================================ */
+function applyFilter(field, value, label) {
+  currentFilter = { field, value, label };
+  document.getElementById('filterLabel').textContent = label;
+  document.getElementById('filterBanner').classList.add('active');
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab')[1].classList.add('active');
+  document.getElementById('panel-1').classList.add('active');
+  renderRows();
+}
+
+function clearFilter() {
+  currentFilter = null;
+  document.getElementById('filterBanner').classList.remove('active');
+  renderRows();
+}
+
+/* ============================================================
+   11. ЭКСПОРТ
+   ============================================================ */
+function exportToExcel() {
+  const table = document.getElementById('dataTable').cloneNode(true);
+  const html = `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office"
+          xmlns:x="urn:schemas-microsoft-com:office:excel"
+          xmlns="http://www.w3.org/TR/REC-html40">
+    <head><meta charset="UTF-8"></head>
+    <body>${table.outerHTML}</body>
+    </html>`;
+  const blob = new Blob(['\uFEFF' + html], { type: 'application/vnd.ms-excel;charset=utf-8' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'Дашборд_PANA_Hotels.xls';
+  link.click();
+}
+
+
+/* ============================================================
+   12. КАЛЕНДАРЬ
+   ============================================================ */
+let calDate = new Date(DATA_END.getFullYear(), DATA_END.getMonth(), 1), calDay = null;
+const MONTHS = ['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
+const pad = n => String(n).padStart(2, '0');
+function renderCal() {
+  const sel = document.getElementById('calLoc');
+  if (!sel.options.length) sel.innerHTML = '<option value="">Все отели</option>' + locations.map(l => `<option>${l.name}</option>`).join('');
+  const loc = sel.value;
+  const by = {};
+  const cc = document.getElementById('calCity').value;
+  rows.filter(r => (!loc || r.loc === loc) && (!cc || r.city === cc)).forEach(r => (by[r.date] = by[r.date] || []).push(r));
+  const y = calDate.getFullYear(), m = calDate.getMonth();
+  document.getElementById('calTitle').textContent = MONTHS[m] + ' ' + y;
+  const first = new Date(y, m, 1), off = (first.getDay() + 6) % 7, start = new Date(y, m, 1 - off);
+  const todayStr = new Date().toDateString();
+  let h = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].map(d => `<div class="h">${d}</div>`).join('');
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(start); d.setDate(start.getDate() + i);
+    if (i >= 35 && d.getMonth() !== m) break;
+    const key = `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()}`;
+    const a = by[key] || [], c = t => a.filter(r => r.typeNorm === t).length;
+    const cls = ['cd', d.getMonth() !== m ? 'out' : '', d.toDateString() === todayStr ? 'today' : '', calDay === key ? 'sel' : ''].join(' ');
+    h += `<div class="${cls}" onclick="calPick('${key}')"><b>${d.getDate()}</b>` + (a.length ? `<div>${a.length} отз.</div><div><span class="n">${c('Отрицательный') ? '🔴' + c('Отрицательный') : ''}</span> <span class="p">${c('Положительный') ? '🟢' + c('Положительный') : ''}</span> <span class="u">${c('Нейтральный') ? '🟡' + c('Нейтральный') : ''}</span></div>` : '') + '</div>';
+  }
+  document.getElementById('cal').innerHTML = h;
+  const t = document.getElementById('calDayTitle'), l = document.getElementById('calDayList');
+  t.style.display = l.style.display = calDay ? '' : 'none';
+  if (calDay) {
+    const a = by[calDay] || [];
+    t.textContent = `📅 ${calDay} — отзывов: ${a.length}`;
+    l.innerHTML = a.length ? `<table class="trend-table"><tbody>${a.map(r => `<tr style="cursor:pointer" onclick="openReview(${rows.indexOf(r)})"><td class="loc">${r.loc}</td><td><span class="badge-type ${r.typeNorm === 'Отрицательный' ? 'neg' : r.typeNorm === 'Положительный' ? 'pos' : 'neu'}">${r.typeNorm}</span></td><td>★ ${r.rating || '—'}</td><td>${r.channel}</td><td style="white-space:normal;min-width:220px">${(r.desc || '').slice(0, 160).replace(/</g,'&lt;')}</td></tr>`).join('')}</tbody></table>` : '<div style="padding:16px;color:var(--text-mute)">Нет отзывов за этот день</div>';
+  }
+}
+function calPick(k) { calDay = calDay === k ? null : k; renderCal(); }
+function calMove(n) { calDate = new Date(calDate.getFullYear(), calDate.getMonth() + n, 1); calDay = null; renderCal(); }
+function calToday() { const n = new Date(); calDate = new Date(n.getFullYear(), n.getMonth(), 1); renderCal(); }
+
+
+/* ============================================================
+   13. КАРТОЧКА ОТЗЫВА + ДАТЫ
+   ============================================================ */
+const escH = t => String(t ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function openReview(i) {
+  const r = rows[i]; if (!r) return;
+  const F = [['Дата', r.date], ['Отель', r.loc], ['Город', r.city], ['Канал', r.channel], ['Тип отзыва', r.typeNorm], ['Оценка', r.rating ? '★ ' + r.rating : '—'],
+    ['Имя клиента', r.name], ['Категория', r.cat], ['Статус претензии', r.status], ['Обоснованность', r.valid], ['Компенсация', r.comp], ['Принятые меры', r.measures],
+    ['Сотрудник', r.emp], ['Статус после отработки', r.post], ['Связь с клиентом', r.contact], ['Проблема', r.problem], ['Описание обращения', r.desc], ['Решение', r.decision]];
+  document.getElementById('mBody').innerHTML = `<h3>Отзыв № ${escH(r.num)}</h3>` + F.map(([k, v]) => `<div class="f"><b>${k}</b><span>${escH(v) || '—'}</span></div>`).join('');
+  document.getElementById('ov').classList.add('on');
+}
+function closeReview() { document.getElementById('ov').classList.remove('on'); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeReview(); });
+function fillCities() {
+  const cities = [...new Set(rows.map(r => r.city).filter(Boolean))].sort();
+  const o = '<option value="">Все города</option>' + cities.map(c => `<option>${c}</option>`).join('');
+  document.getElementById('cityF').innerHTML = o;
+  document.getElementById('calCity').innerHTML = o;
+  const opt = (t, arr) => `<option value="">${t}</option>` + arr.map(c => `<option>${c}</option>`).join('');
+  const uniq = k => [...new Set(rows.map(r => r[k]).filter(Boolean))].sort();
+  document.getElementById('hotelF').innerHTML = opt('Все отели', uniq('loc'));
+  document.getElementById('typeF').innerHTML = opt('Все типы', ['Отрицательный','Положительный','Нейтральный']);
+  document.getElementById('chanF').innerHTML = opt('Все каналы', uniq('channel'));
+}
+function clearDates() { document.getElementById('dFrom').value = ''; document.getElementById('dTo').value = ''; ['cityF','hotelF','typeF','chanF'].forEach(i => document.getElementById(i).value = ''); renderRows(); }
+
+
+/* ============================================================
+   🏆 КАТЕГОРИИ BOOKING: тепловая карта + анализ сильных/слабых сторон
+   «-» в таблице = гость не оценил категорию (null) — в расчёт не входит
+   ============================================================ */
+const CAT_DEF = [['staff','Персонал'],['clean','Чистота'],['location','Местоположение'],['amenities','Удобства'],['comfort','Комфорт'],['value','Цена / качество'],['extra','Доп. категории'],['breakfast','Завтрак'],['score','Оценка гостя']];
+const CAT_NAME = Object.fromEntries(CAT_DEF), CAT_MIN = 3, CAT_DIFF = 0.4;
+const f1 = x => x == null ? '—' : x.toFixed(1).replace('.', ',');
+const cellBg = v => v == null ? '#f1f3f6' : v >= 9 ? '#cdeedb' : v >= 8 ? '#e3f5d6' : v >= 7 ? '#fff1c2' : v >= 6 ? '#ffdcb8' : '#f8c9c6';
+function catAgg() {
+  const av = a => a.length ? a.reduce((s, x) => s + x, 0) / a.length : null;
+  const names = locations.map(l => l.name); CATS.forEach(c => { if (!names.includes(c.hotel)) names.push(c.hotel); });
+  const all = Object.fromEntries(CAT_DEF.map(([k]) => [k, []]));
+  const hotels = names.map(h => {
+    const mine = CATS.filter(c => c.hotel === h), cats = {};
+    CAT_DEF.forEach(([k]) => { const v = mine.map(c => c[k]).filter(x => x != null); all[k].push(...v); cats[k] = { avg: av(v), n: v.length }; });
+    return { name: h, guests: mine.length, cats };
+  }).filter(h => h.guests);
+  return { hotels, net: Object.fromEntries(CAT_DEF.map(([k]) => [k, { avg: av(all[k]), n: all[k].length }])) };
+}
+function extremes(list, key, dir) {            // названия отелей с лучшим (dir=1) / худшим (dir=-1) значением
+  const v = list.filter(x => x[key] != null); if (!v.length) return null;
+  const best = dir > 0 ? Math.max(...v.map(x => x[key])) : Math.min(...v.map(x => x[key]));
+  return { names: v.filter(x => x[key] === best).map(x => x.name), val: best };
+}
+function renderCats() {
+  const root = document.getElementById('catsRoot');
+  if (!CATS.length) { root.innerHTML = '<div class="trend-card"><h3>Нет данных по категориям Booking</h3><div class="cat-note">Заполните лист «Базовые категории».</div></div>'; return; }
+  const A = catAgg(), elig = k => A.hotels.filter(h => h.cats[k].n >= CAT_MIN);
+  const ds = CATS.map(c => c.date).sort(), ru = d => d.split('-').reverse().join('.');
+  const sorted = [...A.hotels].sort((a, b) => (b.cats.score.avg ?? -1) - (a.cats.score.avg ?? -1));
+  /* --- тепловая карта --- */
+  const head = '<tr><th>Отель</th><th>Гостей</th>' + CAT_DEF.map(([, n]) => `<th>${n}</th>`).join('') + '</tr>';
+  const body = sorted.map(h => `<tr><td class="hname">${h.name}</td><td style="background:#eef1f6">${h.guests}</td>` + CAT_DEF.map(([k]) => { const c = h.cats[k];
+    return `<td class="${c.n && c.n < CAT_MIN ? 'low' : ''}" style="background:${cellBg(c.avg)}" title="${c.n} оценок${c.n < CAT_MIN ? ' — мало данных' : ''}">${f1(c.avg)}<small>n=${c.n}</small></td>`; }).join('') + '</tr>').join('');
+  const netRow = `<tr class="netrow"><td class="hname">Средняя по сети</td><td>${CATS.length}</td>` + CAT_DEF.map(([k]) => `<td>${f1(A.net[k].avg)}<small>n=${A.net[k].n}</small></td>`).join('') + '</tr>';
+  /* --- лидеры и аутсайдеры по категориям --- */
+  const lrows = CAT_DEF.map(([k, n]) => { const e = elig(k).sort((a, b) => b.cats[k].avg - a.cats[k].avg);
+    if (e.length < 2) return `<tr><td class="loc">${n}</td><td class="num">${f1(A.net[k].avg)}</td><td colspan="3" style="color:var(--text-mute)">мало данных (нужно ≥${CAT_MIN} оценок минимум у двух отелей)</td></tr>`;
+    const top = e[0], low = e[e.length - 1], gap = top.cats[k].avg - low.cats[k].avg;
+    return `<tr><td class="loc">${n}</td><td class="num">${f1(A.net[k].avg)}</td><td><span class="chip good">▲ ${top.name} ${f1(top.cats[k].avg)}</span></td><td><span class="chip bad">▼ ${low.name} ${f1(low.cats[k].avg)}</span></td><td class="num">${f1(gap)}</td></tr>`; }).join('');
+  /* --- карточки отелей --- */
+  const cards = sorted.map(h => {
+    const ok = CAT_DEF.filter(([k]) => k !== 'score' && k !== 'breakfast' && h.cats[k].n >= CAT_MIN).map(([k, n]) => ({ k, n, v: h.cats[k].avg, d: h.cats[k].avg - A.net[k].avg }));
+    const strong = [...ok].filter(x => x.d >= CAT_DIFF).sort((a, b) => b.d - a.d).slice(0, 3), weak = [...ok].filter(x => x.d <= -CAT_DIFF).sort((a, b) => a.d - b.d).slice(0, 3);
+    const best = [...ok].sort((a, b) => b.v - a.v)[0], worst = [...ok].sort((a, b) => a.v - b.v)[0];
+    const chip = (x, c) => `<span class="chip ${c}">${x.n} ${f1(x.v)} (${x.d > 0 ? '+' : ''}${x.d.toFixed(1).replace('.', ',')})</span>`;
+    const sc = h.cats.score;
+    if (!ok.length) return `<div class="hcard"><h4>${h.name}<span class="bk" style="background:${cellBg(sc.avg)};color:#1a2233">${f1(sc.avg)}</span></h4><div class="sub">оценок гостей: ${h.guests}${sc.n ? ' · средняя «Оценка гостя» ' + f1(sc.avg) : ''}</div><div class="warn">Недостаточно оценок (${h.guests}, нужно хотя бы ${CAT_MIN} по категории) — сильные и слабые стороны пока не определить. Данные в тепловой карте выше.</div></div>`;
+    return `<div class="hcard"><h4>${h.name}<span class="bk" style="background:${cellBg(sc.avg)};color:#1a2233">${f1(sc.avg)}</span></h4>
+      <div class="sub">оценок гостей: ${h.guests}${sc.n ? ' · средняя «Оценка гостя» ' + f1(sc.avg) : ''}</div>
+      <div class="row">💪 ЛУЧШЕ СЕТИ</div>${strong.length ? strong.map(x => chip(x, 'good')).join('') : '<span class="chip neu">заметных преимуществ нет</span>'}
+      <div class="row">⚠️ ХУЖЕ СЕТИ</div>${weak.length ? weak.map(x => chip(x, 'bad')).join('') : '<span class="chip neu">заметных провалов нет</span>'}
+      ${best ? `<div class="row">ВНУТРИ ОТЕЛЯ</div><span class="chip good">лучшее: ${best.n} ${f1(best.v)}</span><span class="chip bad">слабое: ${worst.n} ${f1(worst.v)}</span>` : ''}
+      ${h.guests < CAT_MIN ? `<div class="warn">Мало оценок (${h.guests}) — выводы предварительные</div>` : ''}</div>`; }).join('');
+  /* --- плитки-выводы --- */
+  const hs = A.hotels.filter(h => h.cats.score.n >= CAT_MIN).map(h => ({ name: h.name, v: h.cats.score.avg }));
+  const bestH = extremes(hs, 'v', 1), worstH = extremes(hs, 'v', -1);
+  const nets = CAT_DEF.filter(([k]) => k !== 'score' && A.net[k].n >= CAT_MIN * 2).map(([k, n]) => ({ name: n, v: A.net[k].avg })), bestC = extremes(nets, 'v', 1), worstC = extremes(nets, 'v', -1);
+  const g = extremes(locations, 'gis', 1), gw = extremes(locations, 'gis', -1), b = extremes(locations, 'booking', 1), bw = extremes(locations, 'booking', -1);
+  const list = x => x.names.join(', ');
+  const tiles = [
+    bestH && ['g', '🥇 Лучший по оценке гостей', `<b>${list(bestH)}</b> — ${f1(bestH.val)} из 10`],
+    worstH && ['r', '🔻 Слабее всех по оценке гостей', `<b>${list(worstH)}</b> — ${f1(worstH.val)} из 10`],
+    bestC && ['g', '📈 Сильнейшая категория сети', `<b>${bestC.names[0]}</b> — ${f1(bestC.val)}`],
+    worstC && ['r', '📉 Слабейшая категория сети', `<b>${worstC.names[0]}</b> — ${f1(worstC.val)}`],
+    g && ['b', '⭐ 2ГИС', `лидер: <b>${list(g)}</b> (${g.val.toFixed(1)}) · ниже всех: <b>${list(gw)}</b> (${gw.val.toFixed(1)})`],
+    b && ['b', '🅱️ Booking (общий рейтинг)', `лидер: <b>${list(b)}</b> (${f1(b.val)}) · ниже всех: <b>${list(bw)}</b> (${f1(bw.val)})`]
+  ].filter(Boolean).map(([c, t, x]) => `<div class="ins ${c}"><b class="t">${t}</b>${x}</div>`).join('');
+  root.innerHTML = `
+    <div class="section-title">🏆 Оценки Booking по категориям <span class="badge">${ru(ds[0])} – ${ru(ds[ds.length-1])} · ${CATS.length} гостей</span></div>
+    <div class="ins-grid">${tiles}</div>
+    <div class="trend-card" style="margin-bottom:16px"><h3>🗺️ Тепловая карта: средняя оценка по категориям<span class="note">шкала 0–10 · n — сколько гостей оценили категорию</span></h3>
+      <div style="overflow-x:auto"><table class="heat"><thead>${head}</thead><tbody>${body}${netRow}</tbody></table></div>
+      <div class="cat-note">Прочерк «-» в таблице значит, что гость не оценил категорию — такие ответы в расчёт не входят. Бледные ячейки с курсивом — меньше ${CAT_MIN} оценок, выводы по ним ненадёжны.<br>Цвет: <span class="chip good">≥ 8</span> <span class="chip" style="background:#fff1c2">7–8</span> <span class="chip" style="background:#ffdcb8">6–7</span> <span class="chip bad">&lt; 6</span></div></div>
+    <div class="section-title">🥇 Лидеры и аутсайдеры по категориям</div>
+    <div class="trend-card" style="margin-bottom:16px"><div style="overflow-x:auto"><table class="trend-table"><thead><tr><th>Категория</th><th style="text-align:center">Сеть</th><th>Лучший отель</th><th>Слабый отель</th><th style="text-align:center">Разрыв</th></tr></thead><tbody>${lrows}</tbody></table></div>
+      <div class="cat-note">В сравнение попадают только отели, у которых категорию оценили не менее ${CAT_MIN} гостей.</div></div>
+    <div class="section-title">🏨 Сильные и слабые стороны по отелям</div>
+    <div class="cat-note">В скобках — отличие от средней по сети. «Лучше / хуже сети» — отклонение от ${CAT_DIFF.toString().replace('.', ',')} балла и больше.</div>
+    <div class="hcards">${cards}</div>`;
+}
+
+/* ============================================================
+   📥 ЗАГРУЗКА ДАННЫХ (встроенный снимок + живая выгрузка из Google Таблицы)
+   ============================================================ */
+function applyPayload(P) {
+  const hKey = t => { t = (t || '').replace(/\s+/g, ' ').trim(); let h = 5381; for (let i = 0; i < t.length; i++) h = ((h << 5) + h + t.charCodeAt(i)) | 0; return (h >>> 0).toString(36) + t.length.toString(36); };
+  const all = P.rows.map(r => Object.assign({}, r, { desc: TR[hKey(r.desc)] || r.desc }));
+  const mx = all.map(r => isoD(r.date)).filter(x => /^\d{4}-\d\d-\d\d$/.test(x)).sort().pop();
+  rows.splice(0, rows.length, ...all.filter(r => !EXCLUDED.includes(r.loc))); prepRows();
+  RATINGS = P.ratings || []; CATS = (P.cats || []).filter(c => !EXCLUDED.includes(c.hotel)); buildLocations();
+  if (mx) { REG_END = mx.split('-').reverse().join('.'); const [y, m, d] = mx.split('-').map(Number); DATA_END = new Date(y, m - 1, d); }
+  PERIODS = buildPeriods(periodMode); calDate = new Date(DATA_END.getFullYear(), DATA_END.getMonth(), 1);
+  refreshAll();
+}
+function refreshAll() {
+  fillCities(); renderStats(); renderPeriodTrends(); renderHotelTrends(); renderRatings(); renderLocations(); renderBreakdowns(); renderRows(); renderCats();
+  if (document.getElementById('panel-2').classList.contains('active')) renderCal();
+}
+/* Вставьте сюда URL веб-приложения Apps Script (…/exec) или задайте window.SHEET_URL на странице-родителе */
+const SHEET_URL = (function () { try { return parent.SHEET_URL; } catch (e) {} })() || 'https://script.google.com/macros/s/AKfycbwUYKJqAR0gM2nafmiepXConaj3NlircniogmkuQA13uP6DAouAeGmgHV_I4ivRW2i56A/exec';
+(function () {
+  const note = document.createElement('div');
+  note.style.cssText = 'font:12px system-ui,sans-serif;color:#647084;padding:6px 14px;text-align:right';
+  document.body.insertBefore(note, document.body.firstChild);
+  applyPayload(SNAP);
+  if (!/^https?:\/\//.test(SHEET_URL)) { note.textContent = 'SHEET_URL не задан — данные не загружены. Вставьте ссылку на веб-приложение Apps Script в константу SHEET_URL'; return; }
+  note.textContent = 'Загрузка данных из таблицы…';
+  fetch(SHEET_URL + (SHEET_URL.includes('?') ? '&' : '?') + 'part=pana', { cache: 'no-store' }).then(r => r.json()).then(R => {
+    if (R.error) throw new Error(R.error);
+    if (!R.pana) throw new Error('по этой ссылке отвечает старая версия скрипта — вставьте новый Code.gs и сделайте «Управлять развертываниями → Новая версия»');
+    applyPayload(R);
+    note.textContent = 'Данные из таблицы · обновлено ' + R.updated + ' · отзывов: ' + R.rows.length + (R.stats ? ' · ' + R.stats.map(x => x.sheet + ': в листе ' + x.inSheet + ', выгружено ' + x.loaded).join('; ') : '');
+  }).catch(e => { note.textContent = 'Не удалось загрузить таблицу (' + e.message + ') — показаны данные из файла'; });
+})();
+
 </script>
 
 </body>

@@ -447,6 +447,7 @@
   .heat td.low{opacity:.55;font-style:italic}
   .heat td.hname{background:transparent;font-weight:700;text-align:left;padding-left:2px}
   .heat tr.netrow td{background:#fffdf5;border:1px dashed var(--gold)}
+  .ins.w{border-left-color:var(--gold)}
   .ins-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin-bottom:16px}
   .ins{background:#fff;border-radius:14px;padding:14px 16px;box-shadow:0 2px 10px rgba(15,42,74,.08);border-left:4px solid var(--gold);font-size:13px;line-height:1.55}
   .ins.g{border-left-color:var(--green)} .ins.r{border-left-color:var(--red)} .ins.b{border-left-color:var(--blue)}
@@ -512,7 +513,7 @@
 
 <div class="container">
 
-  <h1>🏨 Дашборд отзывов — PANA Hotels</h1>
+  <h1 style="display:flex;align-items:center;gap:12px"><img src="logo.png" alt="PANA Hotels" style="height:46px;width:auto;display:block" onerror="this.replaceWith(document.createTextNode('🏨'))"><span>Дашборд отзывов — PANA Hotels</span></h1>
 
   <div style="display:flex;align-items:center;gap:10px;justify-content:flex-end;margin:0 0 12px;flex-wrap:wrap"><span style="font-size:12px;color:var(--text-dim)">Период (отзывы, обращения, Jivo, маркетинг):</span><div class="seg vseg" style="margin-left:0"><button data-d="7" onclick="setView(7)">7 дней</button><button data-d="14" onclick="setView(14)" class="on">2 недели</button><button data-d="30" onclick="setView(30)">Месяц</button><button data-d="90" onclick="setView(90)">Квартал</button><button data-d="0" onclick="setView(0)">Всё время</button></div></div>
     <div class="tabs">
@@ -1265,57 +1266,92 @@ function renderCats() {
    💼 ПРОДАЖИ: кто принял бронь, где, на какую сумму + динамика по месяцам
    (дата оплаты, «внес оплату», баланс и источник не используются)
    ============================================================ */
-let salesBasis = 'booked', salesMonths = 6;
+let sMgr = '', sLoc = '', sFrom = '', sTo = '', sDyn = '';
 const rub = n => Math.round(n).toLocaleString('ru-RU') + ' ₸';
 const rubK = n => n >= 1e6 ? (n / 1e6).toFixed(2).replace('.', ',') + ' млн' : Math.round(n / 1e3).toLocaleString('ru-RU') + ' тыс';
 const mLabel = k => MSHORT[+k.slice(5) - 1] + ' ' + k.slice(2, 4);
 const pctS = (a, b) => b ? ((a - b) / b * 100) : null;
 const arrow = (a, b) => { const p = pctS(a, b); return p == null ? '' : `<span style="font-size:11px;font-weight:700;color:${a >= b ? '#16a34a' : '#dc2626'}">${a >= b ? '▲ +' : '▼ '}${p.toFixed(0)}%</span>`; };
-function setSales(k, v) { if (k === 'basis') salesBasis = v; else salesMonths = v; renderSales(); }
+function setSF(k, v) { if (k === 'mgr') sMgr = v; else if (k === 'loc') sLoc = v; else if (k === 'from') sFrom = v; else if (k === 'to') sTo = v; else if (k === 'dyn') sDyn = v; renderSales(); }
+function resetSF() { sMgr = sLoc = sFrom = sTo = ''; renderSales(); }
 function renderSales() {
   const root = document.getElementById('salesRoot');
   if (!SALES.length) { root.innerHTML = '<div class="trend-card"><h3>Нет данных по броням</h3><div class="cat-note">Заполните лист «Показатели» и обновите Code.gs: в нём должны быть колонки «Локация, Дата брони, Дата заезда, Создал, Стоимость».</div></div>'; return; }
-  const key = s => (s[salesBasis] || s.booked).slice(0, 7);
-  const endIso = SALES.map(s => s.booked).sort().pop(), endKey = endIso.slice(0, 7);
-  const ks = SALES.map(key).sort(), months = []; for (let [y, m] = ks[0].split('-').map(Number); ; ) { const k = y + '-' + String(m).padStart(2, '0'); months.push(k); if (k >= ks[ks.length - 1]) break; m++; if (m > 12) { m = 1; y++; } }
-  const lastDay = new Date(+endKey.slice(0, 4), +endKey.slice(5), 0).getDate();
-  const part = k => salesBasis === 'booked' ? (k === endKey && +endIso.slice(8) < lastDay) : k >= endKey;
-  const shown = salesMonths ? months.slice(-salesMonths) : months;
-  const W = SALES.filter(s => shown.includes(key(s)));
   const sum = l => l.reduce((a, s) => a + s.amount, 0);
   const by = (l, f) => { const m = {}; l.forEach(s => (m[f(s)] = m[f(s)] || []).push(s)); return m; };
+  const share = (v, t) => t ? Math.round(v / t * 100) + '%' : '—';
+  const mgrAll = [...new Set(SALES.map(s => s.manager))].sort(), locAll = [...new Set(SALES.map(s => s.loc))].sort();
+  if (sMgr && !mgrAll.includes(sMgr)) sMgr = ''; if (sLoc && !locAll.includes(sLoc)) sLoc = '';
+  const W = SALES.filter(s => (!sMgr || s.manager === sMgr) && (!sLoc || s.loc === sLoc) && (!sFrom || s.booked >= sFrom) && (!sTo || s.booked <= sTo));
+  const scope = (sFrom || sTo || sMgr || sLoc) ? 'по выбранным фильтрам' : 'за всё время';
   const total = sum(W), cnt = W.length;
   const mgr = Object.entries(by(W, s => s.manager)).map(([n, l]) => ({ n, l, c: l.length, v: sum(l) })).sort((a, b) => b.v - a.v);
   const locs = Object.entries(by(W, s => s.loc)).map(([n, l]) => ({ n, l, c: l.length, v: sum(l) })).sort((a, b) => b.v - a.v);
-  const mSum = Object.fromEntries(months.map(k => [k, sum(SALES.filter(s => key(s) === k))]));
-  const mCnt = Object.fromEntries(months.map(k => [k, SALES.filter(s => key(s) === k).length]));
+  const MN = (k) => MSHORT[+k.slice(5) - 1] + ' ' + k.slice(2, 4);
+  /* --- месяцы (фильтр по менеджеру применяется, даты и локация-фильтр сверху — нет) --- */
+  const Dm = SALES.filter(s => !sMgr || s.manager === sMgr), endIso = SALES.map(s => s.booked).sort().pop(), endKey = endIso.slice(0, 7);
+  const ks = SALES.map(s => s.booked.slice(0, 7)).sort(), months = [];
+  for (let [y, m] = ks[0].split('-').map(Number); ; ) { const k = y + '-' + String(m).padStart(2, '0'); months.push(k); if (k >= ks[ks.length - 1]) break; m++; if (m > 12) { m = 1; y++; } }
+  const lastDay = new Date(+endKey.slice(0, 4), +endKey.slice(5), 0).getDate(), part = k => k === endKey && +endIso.slice(8) < lastDay;
   const full = months.filter(k => !part(k)), L = full[full.length - 1], Pv = full[full.length - 2];
-  const share = v => total ? (v / total * 100).toFixed(1).replace('.', ',') + '%' : '—';
+  const mo = (list, k) => list.filter(s => s.booked.slice(0, 7) === k);
+  const allM = Object.fromEntries(months.map(k => [k, mo(SALES, k)]));
+  const dynList = Dm.filter(s => !sDyn || s.loc === sDyn);
+  const dyn = months.map(k => { const l = mo(dynList, k); return { k, c: l.length, v: sum(l) }; });
+  const pctT = (a, b) => b ? (a - b) / b * 100 : null;
+  const pf = p => p == null ? '' : (p >= 0 ? '+' : '−') + Math.abs(p).toFixed(1).replace('.', ',') + '%';
+  const dCell = (a, b) => b ? `<span style="font-weight:700;color:${a >= b ? '#16a34a' : '#dc2626'}">${a >= b ? '▲' : '▼'} ${pf(pctT(a, b))}</span>` : (a ? '<span style="font-weight:700;color:#16a34a">▲ нов.</span>' : '—');
+  const mSumL = L ? sum(allM[L]) : 0, mSumP = Pv ? sum(allM[Pv]) : 0;
+  const unknown = mgrAll.filter(n => n.includes('@'));
+  const names = locs.map(x => x.n);
+  const lines = (l) => Object.entries(by(l, s => s.loc)).map(([n, x]) => [n, x.length, sum(x)]).sort((a, b) => b[2] - a[2]).map(([n, c, v]) => `<div style="white-space:nowrap">${n}: <b>${c}</b> · ${rubK(v)}</div>`).join('');
+  const sel = (id, cur, opts, ph) => `<select onchange="setSF('${id}', this.value)"><option value="">${ph}</option>${opts.map(o => `<option${o === cur ? ' selected' : ''}>${o}</option>`).join('')}</select>`;
+  const filters = `<div class="fbar"><div class="ft">💰 Продажи: фильтры</div>
+      <label>Менеджер${sel('mgr', sMgr, mgrAll, 'Все менеджеры')}</label><label>Локация${sel('loc', sLoc, locAll, 'Все локации')}</label>
+      <label>Бронь с<input type="date" value="${sFrom}" onchange="setSF('from', this.value)"></label><label>Бронь по<input type="date" value="${sTo}" onchange="setSF('to', this.value)"></label>
+      <button class="cal-btn" onclick="resetSF()">✕ Сбросить</button></div>`;
   const tiles = [
-    ['b', '💰 Общая сумма продаж', `<b>${rub(total)}</b><br>${cnt} броней · средний чек ${rub(total / cnt)}`],
-    mgr[0] && ['g', '🥇 Лучший менеджер', `<b>${mgr[0].n}</b> — ${rub(mgr[0].v)}<br>${mgr[0].c} броней · ${share(mgr[0].v)} от суммы`],
-    locs[0] && ['g', '🏨 Лучшая локация', `<b>${locs[0].n}</b> — ${rub(locs[0].v)}<br>${locs[0].c} броней · ${share(locs[0].v)} от суммы`],
-    L && Pv && ['' + (mSum[L] >= mSum[Pv] ? 'g' : 'r'), `📈 ${mLabel(L)} к ${mLabel(Pv)}`, `<b>${mSum[L] >= mSum[Pv] ? '▲ рост' : '▼ спад'} ${rub(Math.abs(mSum[L] - mSum[Pv]))}</b> (${(pctS(mSum[L], mSum[Pv]) >= 0 ? '+' : '') + pctS(mSum[L], mSum[Pv]).toFixed(1).replace('.', ',')}%)<br>брони: ${mCnt[Pv]} → ${mCnt[L]}`]
-  ].filter(Boolean).map(([c, t, x]) => `<div class="ins ${c}"><b class="t">${t}</b>${x}</div>`).join('');
-  const names = locs.map(x => x.n), seg = (k, cur, opts) => `<div class="seg ssg" style="margin-left:0">${opts.map(([v, t]) => `<button class="${cur === v ? 'on' : ''}" onclick="setSales('${k}',${typeof v === 'string' ? "'" + v + "'" : v})">${t}</button>`).join('')}</div>`;
-  const mgrRows = mgr.map(m => `<tr><td class="hname">${m.n}</td><td style="background:#eef1f6">${m.c}</td><td style="background:#e8f0fb">${rub(m.v)}</td><td style="background:#eef1f6">${share(m.v)}</td><td style="background:#eef1f6">${rub(m.v / m.c)}</td>` + names.map(n => { const l = m.l.filter(s => s.loc === n); return l.length ? `<td style="background:#f7f9fc">${l.length}<small>${rubK(sum(l))}</small></td>` : '<td style="background:#f7f9fc;color:#b6bfcc;font-weight:400">—</td>'; }).join('') + '</tr>').join('');
-  const locRows = locs.map(x => { const top = Object.entries(by(x.l, s => s.manager)).map(([n, l]) => [n, sum(l)]).sort((a, b) => b[1] - a[1])[0]; return `<tr><td class="loc">${x.n}</td><td class="num">${x.c}</td><td class="num">${rub(x.v)}</td><td class="num">${share(x.v)}</td><td class="num">${rub(x.v / x.c)}</td><td>${top ? top[0] + ' · ' + rubK(top[1]) : ''}</td></tr>`; }).join('');
-  const mx = Math.max(...shown.map(k => mSum[k]), 1);
-  const monRows = shown.map(k => { const i = months.indexOf(k), p = months[i - 1], d = p != null ? mSum[k] - mSum[p] : null;
-    return `<tr${part(k) ? ' style="font-style:italic;opacity:.8"' : ''}><td class="loc">${mLabel(k)}${part(k) ? '*' : ''}</td><td class="num">${mCnt[k]}</td><td class="num">${rub(mSum[k])}</td><td class="num">${d == null ? '—' : (d >= 0 ? '+' : '−') + rub(Math.abs(d))}</td><td class="num">${p != null ? arrow(mSum[k], mSum[p]) : ''}</td><td style="width:26%"><div style="height:10px;border-radius:6px;background:linear-gradient(90deg,#2e9e5b,#7ccf9b);width:${(mSum[k] / mx * 100).toFixed(0)}%"></div></td></tr>`; }).join('');
-  const mmHead = '<tr><th>Менеджер</th>' + shown.map(k => `<th>${mLabel(k)}${part(k) ? '*' : ''}</th>`).join('') + '<th>Итого</th></tr>';
-  const mmRows = mgr.map(m => `<tr><td class="hname">${m.n}</td>` + shown.map(k => { const i = months.indexOf(k), p = months[i - 1], v = sum(m.l.filter(s => key(s) === k)), pv = p ? sum(SALES.filter(s => s.manager === m.n && key(s) === p)) : 0;
-    return `<td style="background:#f7f9fc;${part(k) ? 'opacity:.7;font-style:italic' : ''}">${v ? rubK(v) : '—'}<small>${v && pv ? arrow(v, pv) : ''}</small></td>`; }).join('') + `<td style="background:#e8f0fb">${rubK(m.v)}</td></tr>`).join('');
+    ['b', '🧾 Всего броней', `<b style="font-size:26px;color:var(--text)">${cnt}</b><br>${scope}`],
+    ['gold', '💰 Общая сумма продаж', `<b style="font-size:26px;color:var(--text)">${rub(total)}</b><br>${scope}`],
+    ['b', '🧮 Средний чек', `<b style="font-size:26px;color:var(--text)">${cnt ? rub(total / cnt) : '—'}</b><br>сумма / брони`],
+    mgr[0] && ['g', '🏆 Лучший менеджер', `<b style="font-size:20px;color:var(--text)">${mgr[0].n}</b><br>${rubK(mgr[0].v)} · ${mgr[0].c} бр.`],
+    locs[0] && ['gold', '📍 Топ локация', `<b style="font-size:20px;color:var(--text)">${locs[0].n}</b><br>${rubK(locs[0].v)} · ${locs[0].c} бр.`],
+    L && Pv && [mSumL >= mSumP ? 'g' : 'r', `📉 ${mLabel(L)} к ${mLabel(Pv)}`.toUpperCase().replace('📉', mSumL >= mSumP ? '📈' : '📉'), `<b style="font-size:26px;color:${mSumL >= mSumP ? '#16a34a' : '#dc2626'}">${pf(pctT(mSumL, mSumP))}</b><br>${rubK(mSumL)} против ${rubK(mSumP)} (${mSumL >= mSumP ? '+' : '−'}${rub(Math.abs(mSumL - mSumP))})`]
+  ].filter(Boolean).map(([c, t, x]) => `<div class="ins ${c === 'gold' ? 'w' : c}"><b class="t">${t}</b>${x}</div>`).join('');
+  /* --- таблицы --- */
+  const mgrRows = mgr.map(m => `<tr><td class="loc">${m.n}</td><td class="num">${m.c}</td><td class="num">${rub(m.v)}</td><td class="num">${rub(m.v / m.c)}</td><td class="num">${share(m.v, total)}</td><td style="font-size:12px">${lines(m.l)}</td></tr>`).join('')
+    + `<tr style="font-weight:800;border-top:2px solid var(--primary)"><td class="loc">Итого</td><td class="num">${cnt}</td><td class="num">${rub(total)}</td><td class="num">${cnt ? rub(total / cnt) : '—'}</td><td class="num">100%</td><td></td></tr>`;
+  const mxRows = mgr.map(m => `<tr><td class="loc">${m.n}</td>` + names.map(n => { const l = m.l.filter(s => s.loc === n); return `<td class="num">${l.length ? `<b>${l.length}</b><br><small style="color:var(--text-mute)">${rubK(sum(l))}</small>` : '—'}</td>`; }).join('') + `<td class="num"><b>${m.c}</b><br><small style="color:var(--text-mute)">${rubK(m.v)}</small></td></tr>`).join('')
+    + `<tr style="font-weight:800;border-top:2px solid var(--primary)"><td class="loc">Всего</td>${locs.map(x => `<td class="num">${x.c}<br><small style="color:var(--text-mute)">${rubK(x.v)}</small></td>`).join('')}<td class="num">${cnt}<br><small style="color:var(--text-mute)">${rubK(total)}</small></td></tr>`;
+  const locRows = locs.map(x => `<tr><td class="loc">${x.n}</td><td class="num">${x.c}</td><td class="num">${rub(x.v)}</td><td class="num">${rub(x.v / x.c)}</td><td class="num">${share(x.v, total)}</td></tr>`).join('');
+  const mx = Math.max(...dyn.map(d => d.v), 1);
+  const bars = `<div style="overflow-x:auto"><div style="display:flex;gap:6px;align-items:flex-end;min-width:${dyn.length * 62}px;height:190px;padding-top:22px">${dyn.map(d => `<div style="flex:1;text-align:center;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%"><span style="font-size:10px;font-weight:700;color:var(--text-dim);margin-bottom:3px">${d.v ? rubK(d.v).replace(' млн', ' млн').replace(' тыс', ' тыс') : '—'}</span><i style="display:block;width:100%;max-width:44px;height:${Math.max(3, Math.round(d.v / mx * 120))}px;border-radius:6px 6px 0 0;background:${part(d.k) ? 'var(--gold-light)' : 'var(--primary)'}"></i><span style="font-size:10px;color:var(--text-mute);margin-top:4px">${MN(d.k)}${part(d.k) ? '*' : ''}</span></div>`).join('')}</div></div>`;
+  const dynRows = dyn.map((d, i) => { const p = dyn[i - 1], diff = p ? d.v - p.v : null, pr = part(d.k);
+    return `<tr><td class="loc">${MN(d.k)}${pr ? '*' : ''}</td><td class="num">${d.c}</td><td class="num">${rub(d.v)}</td><td class="num">${d.c ? rub(d.v / d.c) : '—'}</td><td class="num">${diff == null ? '—' : `<span style="font-weight:700;color:${diff >= 0 ? '#16a34a' : '#dc2626'}">${diff >= 0 ? '▲ +' : '▼ −'}${rub(Math.abs(diff))}</span>`}</td><td class="num">${diff == null || !p.v ? '' : `<span style="font-weight:700;color:${diff >= 0 ? '#16a34a' : '#dc2626'}">${pf(pctT(d.v, p.v))}</span>`}</td><td class="num">${pr ? '<span style="color:var(--text-mute)">неполный месяц</span>' : diff == null ? '' : `<span class="chip ${diff >= 0 ? 'good' : 'bad'}">${diff >= 0 ? '● РОСТ' : '● СПАД'}</span>`}</td></tr>`; }).reverse().join('');
+  const pills = `<div class="seg" style="margin:0 0 10px;flex-wrap:wrap">${[''].concat(locAll).map(n => `<button class="${sDyn === n ? 'on' : ''}" onclick="setSF('dyn','${n}')">${n || 'Все локации'}</button>`).join('')}</div>`;
+  const last6 = months.slice(-6);
+  const mHead = (first) => `<tr><th>${first}</th>${last6.map(k => `<th style="text-align:center">${MN(k)}${part(k) ? '*' : ''}</th>`).join('')}<th style="text-align:center">Δ ${L ? MN(L) : ''} к ${Pv ? MN(Pv) : ''}</th><th style="text-align:center">Итого</th></tr>`;
+  const mCells = (list) => last6.map(k => { const l = mo(list, k); return `<td class="num" style="${part(k) ? 'opacity:.7;font-style:italic' : ''}">${l.length ? `<b>${rubK(sum(l))}</b><br><small style="color:var(--text-mute)">${l.length} бр.</small>` : '—'}</td>`; }).join('') + `<td class="num">${L && Pv ? dCell(sum(mo(list, L)), sum(mo(list, Pv))) : '—'}</td>`;
+  const mmRows = mgrAll.filter(n => !sMgr || n === sMgr).map(n => ({ n, l: SALES.filter(s => s.manager === n && last6.includes(s.booked.slice(0, 7))) })).sort((a, b) => sum(b.l) - sum(a.l)).map(x => { const all = SALES.filter(s => s.manager === x.n); return `<tr><td class="loc">${x.n}</td>${mCells(all)}<td class="num"><b>${rubK(sum(x.l))}</b><br><small style="color:var(--text-mute)">${x.l.length} бр.</small></td></tr>`; }).join('');
+  const inLast = SALES.filter(s => last6.includes(s.booked.slice(0, 7)) && (!sMgr || s.manager === sMgr));
+  const mmTotal = `<tr style="font-weight:800;border-top:2px solid var(--primary)"><td class="loc">Всего</td>${mCells(Dm)}<td class="num"><b>${rubK(sum(inLast))}</b><br><small style="color:var(--text-mute)">${inLast.length} бр.</small></td></tr>`;
+  const llRows = locAll.map(n => ({ n, l: Dm.filter(s => s.loc === n && last6.includes(s.booked.slice(0, 7))) })).sort((a, b) => sum(b.l) - sum(a.l)).map(x => `<tr><td class="loc">${x.n}</td>${mCells(Dm.filter(s => s.loc === x.n))}<td class="num"><b>${rubK(sum(x.l))}</b><br><small style="color:var(--text-mute)">${x.l.length} бр.</small></td></tr>`).join('');
+  const th = (h) => `<thead><tr>${h.map((x, i) => `<th${i ? ' style="text-align:center"' : ''}>${x}</th>`).join('')}</tr></thead>`;
+  const T = (h, body) => `<div style="overflow-x:auto"><table class="trend-table">${th(h)}<tbody>${body}</tbody></table></div>`;
   root.innerHTML = `
-    <div class="section-title">💼 Продажи <span class="badge">брони по ${endIso.split('-').reverse().join('.')}</span>
-      <span style="margin-left:auto;display:flex;gap:10px;flex-wrap:wrap;align-items:center"><span style="font-size:12px;color:var(--text-dim)">Месяц по:</span>${seg('basis', salesBasis, [['booked', 'дате брони'], ['checkin', 'дате заезда']])}${seg('months', salesMonths, [[6, '6 мес'], [12, '12 мес'], [0, 'Всё']])}</span></div>
+    ${filters}
+    ${unknown.length ? `<div class="cat-note" style="color:#a15c00;margin-bottom:12px">Почты не из списка сотрудников (показаны как есть): ${unknown.join(', ')} — добавьте их в STAFF в Apps Script.</div>` : ''}
     <div class="ins-grid">${tiles}</div>
-    <div class="trend-card" style="margin-bottom:16px"><h3>👤 Менеджеры: брони, сумма и локации<span class="note">кто принял бронь · в ячейках: число броней и сумма</span></h3>
-      <div style="overflow-x:auto"><table class="heat"><thead><tr><th>Менеджер</th><th>Броней</th><th>Сумма</th><th>Доля</th><th>Ср. чек</th>${names.map(n => `<th>${n}</th>`).join('')}</tr></thead><tbody>${mgrRows}</tbody></table></div></div>
-    <div class="trend-card" style="margin-bottom:16px"><h3>🏨 Локации</h3><div style="overflow-x:auto"><table class="trend-table"><thead><tr><th>Локация</th><th style="text-align:center">Броней</th><th style="text-align:center">Сумма</th><th style="text-align:center">Доля</th><th style="text-align:center">Ср. чек</th><th>Лучший менеджер</th></tr></thead><tbody>${locRows}</tbody></table></div></div>
-    <div class="trend-card" style="margin-bottom:16px"><h3>📅 Динамика по месяцам<span class="note">прирост / спад к предыдущему месяцу${shown.some(part) ? ' · * неполный месяц' : ''}</span></h3><div style="overflow-x:auto"><table class="trend-table"><thead><tr><th>Месяц</th><th style="text-align:center">Броней</th><th style="text-align:center">Сумма</th><th style="text-align:center">Δ сумма</th><th style="text-align:center">Δ %</th><th></th></tr></thead><tbody>${monRows}</tbody></table></div></div>
-    <div class="trend-card" style="margin-bottom:16px"><h3>👤📅 Менеджеры по месяцам<span class="note">сумма продаж и изменение к предыдущему месяцу</span></h3><div style="overflow-x:auto"><table class="heat"><thead>${mmHead}</thead><tbody>${mmRows}</tbody></table></div></div>
-    <div class="cat-note">Считаются брони по колонке «Создал» — то есть кто принял бронь, а не кто внёс оплату. «Дата оплаты», «Внес оплату», баланс и источник не учитываются. Менеджеры подставляются по почте из списка STAFF в Code.gs; неизвестная почта показывается как есть.</div>`;
+    <div class="section-title">👤 Менеджеры</div>
+    <div class="trend-card" style="margin-bottom:16px"><h3>👤 Кто сколько принял броней<span class="note">менеджер = кто создал бронь · ${scope}</span></h3>${T(['Менеджер', 'Броней', 'Сумма', 'Средний чек', 'Доля', 'По локациям'], mgrRows)}</div>
+    <div class="trend-card" style="margin-bottom:16px"><h3>🗺️ Менеджер × локация<span class="note">число броней и сумма · ${scope}</span></h3>${T(['Менеджер'].concat(names, ['Всего']), mxRows)}</div>
+    <div class="trend-card" style="margin-bottom:16px"><h3>📍 По локациям<span class="note">${scope}</span></h3>${T(['Локация', 'Броней', 'Сумма', 'Средний чек', 'Доля'], locRows)}</div>
+    <div class="section-title">📈 Динамика</div>
+    <div class="trend-card" style="margin-bottom:16px"><h3>📈 Динамика продаж по месяцам<span class="note">по дате создания брони · фильтр менеджера применяется, даты — нет · * месяц не завершён, в оценку роста не входит</span></h3>${pills}${bars}
+      <div style="margin-top:14px">${T(['Месяц', 'Броней', 'Сумма', 'Средний чек', 'Δ сумма', '%', 'Итог'], dynRows)}</div></div>
+    <div class="trend-card" style="margin-bottom:16px"><h3>👤 Менеджеры по месяцам<span class="note">сумма и число броней · последние 6 месяцев</span></h3><div style="overflow-x:auto"><table class="trend-table"><thead>${mHead('Менеджер')}</thead><tbody>${mmRows}${mmTotal}</tbody></table></div></div>
+    <div class="trend-card" style="margin-bottom:16px"><h3>🏨 Локации по месяцам<span class="note">сумма и число броней · последние 6 месяцев</span></h3><div style="overflow-x:auto"><table class="trend-table"><thead>${mHead('Локация')}</thead><tbody>${llRows}</tbody></table></div></div>
+    <div class="cat-note">Считаются брони по колонке «Создал» — то есть кто принял бронь, а не кто внёс оплату. «Дата оплаты», «Внес оплату», баланс и источник не учитываются.</div>`;
 }
 
 
@@ -1349,6 +1385,8 @@ function hourHeat(list, isBad, label) {
     <tr><td class="hname">${label === 'Звонки' ? 'Без ответа' : 'Пропущено'}</td>${use.map(h => `<td style="background:rgba(217,83,79,${bad[h] ? (0.12 + 0.55 * bad[h] / mx).toFixed(2) : 0.04})">${bad[h]}</td>`).join('')}</tr></tbody></table></div>`;
 }
 
+let callMonth = '';
+function setCallMonth(v) { callMonth = v; renderComms(); }
 const WORK_FROM = 10, WORK_TO = 22;   // рабочие часы для «процента пропущенных» (как в примере; поменяйте при необходимости)
 const ACC = new Set(['PROPER', 'REPEATED', 'ANSWERED']), MSS = new Set(['NO ANSWER', 'VOICEMAIL', 'DECLINE', 'BUSY', 'NO-FORWARD', 'FAILED']);
 const KV = rows => `<table class="trend-table"><tbody>${rows.map(r => `<tr class="${r[2] || ''}"><td class="loc" style="${r[2] === 't' ? 'font-weight:800' : ''}">${r[0]}</td><td class="num" style="${r[3] || ''}">${r[1]}</td></tr>`).join('')}</tbody></table>`;
@@ -1368,7 +1406,7 @@ function callStats() {
   series.forEach(sr => { for (const e of by[sr.k]) { if (e.t <= sr.first.t) continue; if (e.t - sr.first.t > 24 * HR) break;
     if (e.dir === 'out' && !e.status.startsWith('FAILED')) { sr.cbs++; sr.ev.push(e); } else if (e.dir === 'in' && ACC.has(e.status)) sr.self = true; }
     sr.res = sr.cbs ? 'cb' : sr.self ? 'self' : ''; });
-  const W = inWin(A, x => x.ts), WS = new Set(W);
+  const W = callMonth ? A.filter(x => x.ts.slice(0, 7) === callMonth) : inWin(A, x => x.ts), WS = new Set(W);
   const F = { total_in: 0, off: 0, vm_out: 0, base: 0, ans: 0, cand: 0, cb: 0, cb_ok: 0, self: 0, miss: 0, short: 0, other: 0, tech: 0, outs: 0, uniq: 0, series: 0 };
   const days = {}, hours = {}, ops = {}, missRows = [], cbSeen = new Set(), uq = new Set();
   for (let h = WORK_FROM; h < WORK_TO; h++) hours[h] = [h, 0, 0];
@@ -1401,6 +1439,7 @@ function callStats() {
 function renderComms() {
   const root = document.getElementById('commsRoot');
   if (!CALLS.length && !DIALOGS.length) { root.innerHTML = NODATA('Нет данных по звонкам и диалогам', 'Листы «Звонки» и «Все диалоги» пусты или не найдены. Проверьте названия листов в CONFIG и обновите Code.gs (Новая версия развёртывания).'); return; }
+  const cm = [...new Set(CALLS.map(x => x.ts.slice(0, 7)))].sort(); if (!cm.includes(callMonth)) callMonth = cm[cm.length - 1] || '';
   const R = CALLS.length ? callStats() : null, F = R ? R.F : null, C = R ? R.W : [], D = inWin(DIALOGS, x => x.ts);
   const inc = C.filter(x => x.dir === 'in'), stat = {}; C.forEach(x => { const k = x.dir + '|' + x.status; (stat[k] = stat[k] || []).push(x); });
   const statRows = Object.entries(stat).sort((x, y) => y[1].length - x[1].length).map(([k, l]) => { const [d, st] = k.split('|'); return [`${d === 'in' ? '↘ вход.' : '↗ исх.'} ${st}`, l.length, pc(l.length, C.length), dur(avg(l.map(x => x.wait))), dur(avg(l.filter(x => x.talk > 0).map(x => x.talk)))]; });
@@ -1427,30 +1466,33 @@ function renderComms() {
   notes.push('Имена сотрудников объединяются по спискам STAFF и NAME_ALIASES в Code.gs: новая почта или написание — добавьте строку, и она подхватится во всех разделах.');
   if (full && chk.length) notes.push('Значок ✓ рядом с оператором: число диалогов и пропущенных совпало с листом «Операторы».');
   const pct = F ? pc(F.miss, F.base) : '—';
+  const big = (c, n, t) => `<div class="ins ${c}"><b style="display:block;font-size:28px;line-height:1.15;color:${c === 'r' ? '#d9534f' : 'var(--text)'}">${n}</b><span style="color:var(--text-dim)">${t}</span></div>`;
+  const mTitle = callMonth ? MONTHS[+callMonth.slice(5) - 1] + ' ' + callMonth.slice(0, 4) : '';
   root.innerHTML = `
-    <div class="section-title">📞 Обращения <span class="badge">звонки ${span(C, x => x.ts)} · диалоги ${span(D, x => x.ts)}</span></div>
-    ${F ? `<div class="ins-grid">
-      ${tile('b', '📞 Входящие в рабочие часы', `<b>${F.base}</b> (с ${WORK_FROM}:00 до ${WORK_TO}:00)<br>всего входящих ${F.total_in}, вне часов ${F.off}`)}
-      ${tile('g', '✅ Приняты оператором', `<b>${F.ans}</b> · ${pc(F.ans, F.base)} от базы`)}
-      ${tile(F.miss / Math.max(F.base, 1) > 0.1 ? 'r' : 'g', '⛔ Пропущено', `<b>${F.miss}</b> · <b>${pct}</b> от базы<br>разных клиентов без ответа: ${F.uniq}`)}
-      ${tile(D.length && dMiss.length / D.length > 0.1 ? 'r' : 'g', '💬 Диалоги Jivo', D.length ? `<b>${D.length}</b> · пропущено ${dMiss.length} (${pc(dMiss.length, D.length)})<br>ожидание &gt; 5 мин: ${pc(slow, dInc.length)} · &gt; 1 ч: ${vslow}` : 'нет данных за период')}
+    ${F ? `<div class="section-title">📞 Звонки: пропущенные · ${mTitle}</div>
+    <div style="margin-bottom:12px"><select class="cal-sel" onchange="setCallMonth(this.value)">${cm.slice().reverse().map(k => `<option value="${k}"${k === callMonth ? ' selected' : ''}>${MONTHS[+k.slice(5) - 1]} ${k.slice(0, 4)}</option>`).join('')}</select></div>
+    <div class="cat-note" style="margin-bottom:12px">Журнал Ringostat из таблицы, последний звонок в таблице ${R.last}. Данные последних суток предварительные: перезвон мог ещё не состояться.</div>
+    <div class="ins-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+      ${big('b', F.base, 'Входящих в рабочие часы (база)')}
+      ${big('g', F.ans, 'Приняты оператором')}
+      ${big('r', F.miss, 'Пропущено')}
+      ${big(F.miss / Math.max(F.base, 1) > 0.1 ? 'r' : 'g', pct, 'Доля пропущенных')}
+      ${big('b', F.uniq, 'Разных гостей без ответа')}
     </div>
     <div class="trend-grid">
-      ${card('🧮 Как получилась цифра', 'процент пропущенных звонков', KV([['Всего входящих', F.total_in], [`Вне часов ${WORK_FROM}:00–${WORK_TO}:00 (из них голосовая почта ${F.vm_out})`, '−' + F.off, 'm', 'color:var(--text-mute)'], ['Входящих в рабочие часы (база)', F.base, 't'], ['Приняты оператором', F.ans], ['Не приняты оператором', F.cand], ['из них: оператор перезвонил (до 24 ч)', F.cand - F.miss - F.self - F.short - F.other], ['из них: гость дозвонился сам', F.self], ['Пропущено (не дозвонились и не перезвонили)', F.miss, 't', 'color:var(--red)'], ['Доля пропущенных от базы', pct, 't', 'color:var(--red)']]))}
+      ${card('🧮 Как получилась цифра', '', KV([['Всего входящих', F.total_in], [`Вне часов ${WORK_FROM}:00–${WORK_TO}:00 (из них голосовая почта ${F.vm_out})`, '−' + F.off, 'm', 'color:var(--text-mute)'], ['Входящих в рабочие часы (база)', F.base, 't'], ['Приняты оператором', F.ans], ['Не приняты оператором', F.cand], ['из них: оператор перезвонил (до 24 ч)', F.cand - F.miss - F.self - F.short - F.other], ['из них: гость дозвонился сам', F.self], ['Пропущено (не дозвонились и не перезвонили)', F.miss, 't', 'color:var(--red)'], ['Доля от базы', pct, 't', 'color:var(--red)']]))}
       ${card('➕ Что ещё важно', '', KV([['Перезвонов оператора, где гость ответил', F.cb_ok + ' из ' + F.cb], ['Серий 3+ звонка подряд, закрытых перезвоном', F.series], ['Исходящих звонков всего', F.outs], ['Не пропущены: звонок короче 30 секунд', F.short], ['Не пропущены: статус вне списка пропущенных', F.other], ['Пропущены из-за технического сбоя (FAILED)', F.tech]]))}
     </div>
     ${card('📅 Пропущенные по дням', 'число и % от входящих за день в рабочие часы', colChart(R.days, x => x.slice(8, 10) + '.' + x.slice(5, 7)))}
     ${card('🕒 Пропущенные по часам', 'число и % от входящих в этот час', colChart(R.hours, x => x + ':00'))}
-    ${card('🧑‍💼 Операторы (телефония)', 'ожидание — сколько гость ждал до ответа; перезвоны — исходящие оператора', TBL(['Оператор', 'Принято входящих', 'Ожидание, с', 'Разговор, с', 'Перезвонов', 'Из них с ответом'], R.ops))}
-    ${card('🔁 Серии: гость звонил несколько раз подряд', 'пропущенные одного клиента в пределах 24 часов от первого', R.SR.length ? TBL(['Первый пропущенный', 'Клиент', 'Звонков в серии', 'Перезвонов оператора', 'Итог'], R.SR) : '<div class="cat-note">Серий из 2 и более звонков нет.</div>')}
+    ${card('🔁 Серии: гость звонил несколько раз подряд', 'пропущенные одного клиента в пределах 24 часов от первого', R.SR.length ? TBL(['Первый пропущенный', 'Клиент', 'Звонков в серии', 'Перезвонов', 'Итог'], R.SR) : '<div class="cat-note">Серий из 2 и более звонков нет.</div>')}
     ${card('📋 Пропущенные без перезвона: ' + R.Ln, R.Ln > R.L.length ? 'показаны последние ' + R.L.length : 'клиентам нужно перезвонить', TBL(['Когда', 'Телефон', 'Ждал, с', 'Звонков без ответа'], R.L))}
     ${card('📞 Звонки: статусы', 'ожидание и разговор — средние', TBL(['Тип · статус', 'Звонков', 'Доля', 'Ср. ожидание', 'Ср. разговор'], statRows))}` : ''}
-    ${D.length ? card('💬 Операторы Jivo', 'диалоги из листа «Все диалоги»', TBL(['Оператор', 'Диалогов', 'Входящих', 'Пропущено', '% пропущ.', 'Исходящих', 'Ср. длит.', 'Медиана ожид.', 'Ожид. > 5 мин', 'События'], opRows)) : ''}
+    ${D.length ? `<div class="section-title">💬 Диалоги Jivo <span class="badge">${span(D, x => x.ts)}</span></div>` : ''}
+    ${D.length ? card('Диалоги: сводка', '', `<div class="ins-grid" style="margin:0">${big(dMiss.length / D.length > 0.1 ? 'r' : 'g', D.length, 'Диалогов')}${big(dMiss.length / D.length > 0.1 ? 'r' : 'g', dMiss.length + ' · ' + pc(dMiss.length, D.length), 'Пропущено')}${big('b', pc(slow, dInc.length), 'Ожидание > 5 мин')}</div>`) : ''}
     ${D.length ? card('🕒 Диалоги по часам', '', hourHeat(D, x => x.type === 'missed', 'Диалоги')) : ''}
     ${D.length ? card('📡 Каналы обращений', '', TBL(['Канал', 'Диалогов', 'Доля', 'Пропущено', '% пропущ.', 'Медиана ожид.'], grp('channel'))) : ''}
-    ${D.length ? card('🏨 Темы диалогов (по отелям)', '«Без темы» — тема не проставлена', TBL(['Тема', 'Диалогов', 'Доля', 'Пропущено', '% пропущ.', 'Медиана ожид.'], grp('topic'))) : ''}
-    ${card('🔗 Сотрудники: звонки, диалоги, Jivo и продажи вместе', 'продажи — из вкладки «Продажи» за тот же период', TBL(['Сотрудник', 'Звонки (принято)', 'Диалоги (входящих)', 'Диалоги (пропущено)', 'Сделки Jivo', 'из них успешных', 'Брони (шт)', 'Сумма броней'], staff))}
-    ${card('ℹ️ Качество данных и ограничения', '', `<div class="cat-note">${notes.map(n => '• ' + n).join('<br>')}</div>`)}`;
+    ${D.length ? card('🏨 Темы диалогов (по отелям)', '«Без темы» — тема не проставлена', TBL(['Тема', 'Диалогов', 'Доля', 'Пропущено', '% пропущ.', 'Медиана ожид.'], grp('topic'))) : ''}`;
 }
 
 /* ============================================================

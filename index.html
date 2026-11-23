@@ -522,7 +522,7 @@
     <div class="tab" onclick="showTab(2, this)">📅 Календарь</div>
     <div class="tab" onclick="showTab(3, this)">🏆 Категории Booking</div>
     <div class="tab" onclick="showTab(4, this)">💼 Продажи</div>
-    <div class="tab" onclick="showTab(7, this)">🛏 Загрузка номеров</div>
+    <div class="tab" onclick="showTab(7, this)">🏨 Простой номеров</div>
     <div class="tab" onclick="showTab(5, this)">📞 Обращения</div>
     <div class="tab" onclick="showTab(6, this)">🎯 Jivo и маркетинг</div>
   </div>
@@ -1573,6 +1573,105 @@ let occHotel = '';
 const DAYMS = 864e5, utcT = iso => Date.parse(iso + 'T00:00:00Z'), isoT = t => new Date(t).toISOString().slice(0, 10);
 const normCat = x => String(x || '').toLowerCase().replace(/[^a-zа-яё0-9]/g, '');
 const occBg = v => v == null ? '#f1f3f6' : v >= 80 ? '#cdeedb' : v >= 60 ? '#e3f5d6' : v >= 40 ? '#fff1c2' : v >= 20 ? '#ffdcb8' : '#f8c9c6';
+
+/* ===== ПРОСТОЙ И ПОТЕРИ: считается здесь из листов «Бронирования» и «Номера» ===== */
+let occFrom = '', occTo = '', occCat = '', occH = '';
+const money0 = n => Math.round(n).toLocaleString('ru-RU') + ' ₸';
+function occCalc() {
+  const canon = {}, qty = {};
+  ROOMS.forEach(r => { if (!r.hotel || !r.qty || !r.name) return; (canon[r.hotel] = canon[r.hotel] || {})[normCat(r.name)] = r.name; if (r.id) canon[r.hotel][normCat(r.id)] = r.name; qty[r.hotel] = qty[r.hotel] || {}; qty[r.hotel][r.name] = (qty[r.hotel][r.name] || 0) + r.qty; });
+  const cn = (h, c) => (canon[h] && canon[h][normCat(c)]) || c;
+  if (!BOOK.length || !Object.keys(qty).length) return null;
+  const todayIso = isoS(new Date()), endT = utcT(todayIso) - DAYMS, startT = BOOK.reduce((m, b) => Math.min(m, utcT(b[2])), Infinity);
+  const cells = {}, C = (h, c, m) => cells[h + '|' + c + '|' + m] || (cells[h + '|' + c + '|' + m] = { h, c, m, cap: 0, occ: 0, idle: 0, lost: 0, act: 0, canc: 0, cancSum: 0, over: 0 });
+  const dm = {}, pr = {}, noCap = new Set();
+  BOOK.forEach(b => {
+    const h = b[0], status = b[1], ci = b[2], amount = b[7] || 0, rooms = b[4], rc = b[10]; if (!qty[h]) return;
+    const rcs = rc ? rc.split('|') : [], units = rooms > 0 ? (rcs.length > 1 ? rcs : Array(Math.round(rooms)).fill(rcs[0] || 'Без категории')) : []; if (!units.length) return;
+    const cats = units.map(c => cn(h, c)), ciT = utcT(ci), ym = ci.slice(0, 7), nights = Math.max(1, Math.round(b[3] || 1));
+    if (ciT <= endT) cats.forEach(c => { const x = C(h, c, ym); if (status === 'Активный') x.act++; else if (status === 'Отмена') { x.canc++; x.cancSum += amount / cats.length; } });
+    if (status !== 'Активный') return;
+    const per = amount / (cats.length * nights);
+    for (let k = 0; k < nights; k++) { const t = ciT + k * DAYMS, mk = isoT(t).slice(0, 7);
+      cats.forEach(c => { if (!qty[h][c]) { noCap.add(h + '|' + c); return; } const key = h + '|' + c; (dm[key] = dm[key] || {})[t] = (dm[key][t] || 0) + 1; const p = pr[key + '|' + mk] || (pr[key + '|' + mk] = [0, 0]); p[0] += per; p[1]++; }); }
+  });
+  Object.keys(qty).forEach(h => Object.keys(qty[h]).forEach(c => { const q = qty[h][c], d = dm[h + '|' + c] || {};
+    for (let t = startT; t <= endT; t += DAYMS) { const x = C(h, c, isoT(t).slice(0, 7)), n = d[t] || 0; x.cap += q; x.occ += Math.min(n, q); x.over += Math.max(0, n - q); } }));
+  const price = (h, c, m) => { const own = pr[h + '|' + c + '|' + m]; if (own && own[1] >= 3) return own[0] / own[1];
+    const near = Object.keys(pr).filter(k => k.startsWith(h + '|' + c + '|') && pr[k][1] >= 3).sort((a, b) => Math.abs(+a.slice(-7).replace('-', '') - +m.replace('-', '')) - Math.abs(+b.slice(-7).replace('-', '') - +m.replace('-', '')))[0];
+    if (near) return pr[near][0] / pr[near][1]; const all = Object.keys(pr).filter(k => k.startsWith(h + '|' + c + '|')); const s0 = all.reduce((a, k) => a + pr[k][0], 0), n0 = all.reduce((a, k) => a + pr[k][1], 0); return n0 ? s0 / n0 : 0; };
+  const list = Object.values(cells); list.forEach(x => { x.idle = Math.max(0, x.cap - x.occ); x.lost = x.cap ? x.idle * price(x.h, x.c, x.m) : 0; });
+  return { list, qty, noCap: [...noCap], endIso: isoT(endT), startIso: isoT(startT), todayIso };
+}
+function setOccH(i) { occH = i < 0 ? '' : Object.keys(OCCX.qty)[i]; occCat = ''; renderOcc(); }
+function setOccCat(i) { occCat = i < 0 ? '' : OCCX.catList[i]; renderOcc(); }
+function setOccRange(kind) {
+  const ms = OCCX.months, cur = OCCX.endIso.slice(0, 7), prev = k => { let [y, m] = k.split('-').map(Number); m--; if (m < 1) { m = 12; y--; } return y + '-' + p2(m); };
+  if (kind === 'cur') occFrom = occTo = cur; else if (kind === 'prev') occFrom = occTo = prev(cur); else if (kind === '3') { occFrom = prev(prev(cur)); occTo = cur; } else { occFrom = ms[0]; occTo = ms[ms.length - 1]; }
+  renderOcc();
+}
+function occLossHtml() {
+  const X = OCCX = occCalc(); if (!X) return '';
+  const hotels = Object.keys(X.qty); if (occH && !hotels.includes(occH)) occH = '';
+  const months = [...new Set(X.list.filter(x => x.cap).map(x => x.m))].sort(); X.months = months; if (!months.length) return '';
+  const cur = X.endIso.slice(0, 7);
+  if (!occFrom || !months.includes(occFrom)) occFrom = months[0]; if (!occTo || !months.includes(occTo)) occTo = months[months.length - 1]; if (occFrom > occTo) [occFrom, occTo] = [occTo, occFrom];
+  const inH = x => !occH || x.h === occH, base = X.list.filter(inH), cur_ = base.filter(x => x.m >= occFrom && x.m <= occTo);
+  X.catList = [...new Set(base.filter(x => x.cap).map(x => x.c))].sort();
+  const sum = (a, k) => a.reduce((s, x) => s + x[k], 0), per = occFrom === occTo ? mLabel(occFrom) : mLabel(occFrom) + ' – ' + mLabel(occTo);
+  const capT = sum(cur_, 'cap'), idleT = sum(cur_, 'idle'), lostT = sum(cur_, 'lost'), actT = sum(cur_, 'act'), cancT = sum(cur_, 'canc'), cancS = sum(cur_, 'cancSum');
+  let dayCnt = 0; months.filter(k => k >= occFrom && k <= occTo).forEach(k => { dayCnt += k === cur ? +X.endIso.slice(8) : new Date(+k.slice(0, 4), +k.slice(5), 0).getDate(); });
+  const p1 = v => (v * 100).toFixed(0) + '%', dash = '<span style="color:var(--text-mute)">—</span>';
+  const seg = (arr, curv, fn, all) => `<div class="seg" style="margin:0 0 10px;flex-wrap:wrap"><button class="${curv ? '' : 'on'}" onclick="${fn}(-1)">${all}</button>${arr.map((n, i) => `<button class="${curv === n ? 'on' : ''}" onclick="${fn}(${i})">${n}</button>`).join('')}</div>`;
+  const isR = (a, b) => occFrom === a && occTo === b;
+  const opt = (id, v) => `<select id="${id}" onchange="occFrom=document.getElementById('oF').value;occTo=document.getElementById('oT').value;renderOcc()">${months.map(k => `<option value="${k}"${k === v ? ' selected' : ''}>${mLabel(k)}</option>`).join('')}</select>`;
+  const bar = `<div class="fbar"><div class="ft">🏨 Простой и потери: период и отель</div>
+    <div class="seg" style="margin:0;flex-wrap:wrap"><button class="${isR(cur, cur) ? 'on' : ''}" onclick="setOccRange('cur')">Этот месяц</button><button class="${occFrom === occTo && occFrom !== cur ? 'on' : ''}" onclick="setOccRange('prev')">Прошлый месяц</button><button class="${occFrom !== occTo && occTo === cur && occFrom === months[Math.max(0, months.length - 3)] ? 'on' : ''}" onclick="setOccRange('3')">3 месяца</button><button class="${isR(months[0], months[months.length - 1]) ? 'on' : ''}" onclick="setOccRange('all')">Всё время</button></div>
+    <label>С месяца${opt('oF', occFrom)}</label><label>По месяц${opt('oT', occTo)}</label></div>${seg(hotels, occH, 'setOccH', 'Все отели')}`;
+  const cards = `<div class="stats-grid">
+    <div class="stat-card negative"><div class="stat-icon">💸</div><div class="stat-title">Потери от простоя (оценка)</div><div class="stat-value" style="font-size:21px">${money0(lostT)}</div><div class="stat-sub">пустые ночи × средняя цена ночи · ${per}</div></div>
+    <div class="stat-card warning"><div class="stat-icon">🛏️</div><div class="stat-title">Пустых ночей</div><div class="stat-value">${idleT.toLocaleString('ru-RU')}</div><div class="stat-sub">из ${capT.toLocaleString('ru-RU')} доступных</div></div>
+    <div class="stat-card info"><div class="stat-icon">📊</div><div class="stat-title">Загрузка</div><div class="stat-value">${capT ? p1((capT - idleT) / capT) : '—'}</div><div class="stat-sub">продано ${Math.max(0, capT - idleT).toLocaleString('ru-RU')} ночей</div></div>
+    <div class="stat-card gold"><div class="stat-icon">🏠</div><div class="stat-title">Номеров в простое в среднем</div><div class="stat-value">${dayCnt ? (idleT / dayCnt).toFixed(1).replace('.', ',') : '—'}</div><div class="stat-sub">пустых ночей / дней в периоде (${dayCnt})</div></div>
+    <div class="stat-card info"><div class="stat-icon">✅</div><div class="stat-title">Брони</div><div class="stat-value">${actT}</div><div class="stat-sub">номеро-броней · заезд в периоде</div></div>
+    <div class="stat-card warning"><div class="stat-icon">❌</div><div class="stat-title">Отмены</div><div class="stat-value">${cancT}</div><div class="stat-sub">${actT + cancT ? p1(cancT / (actT + cancT)) : '—'} от всех · на ${rubK(cancS)}</div></div></div>`;
+  /* по категориям */
+  const grp = {}; cur_.forEach(x => { const k = x.h + '|' + x.c, a = grp[k] || (grp[k] = { h: x.h, c: x.c, cap: 0, idle: 0, lost: 0, act: 0, canc: 0, cancSum: 0 }); ['cap', 'idle', 'lost', 'act', 'canc', 'cancSum'].forEach(f => a[f] += x[f]); });
+  const keys = Object.keys(grp).sort((a, b) => grp[b].lost - grp[a].lost || grp[b].act - grp[a].act);
+  const catRows = keys.map(k => { const a = grp[k], q = (X.qty[a.h] || {})[a.c], sold = Math.max(0, a.cap - a.idle), nm = `${a.c}${occH ? '' : `<br><small style="color:var(--text-mute);font-weight:500">${a.h}</small>`}`;
+    if (!q) return `<tr><td class="loc">${nm}<br><small style="color:var(--text-mute);font-weight:500">нет в листе «Номера»</small></td><td class="num">${dash}</td><td class="num">${dash}</td><td class="num">${dash}</td><td class="num">${dash}</td><td class="num">${dash}</td><td class="num">${dash}</td><td class="num">${a.act}</td><td class="num">${a.canc}</td><td class="num">${a.cancSum ? rubK(a.cancSum) : '—'}</td></tr>`;
+    return `<tr><td class="loc">${nm}</td><td class="num">${q}</td><td class="num">${a.cap}</td><td class="num">${sold}</td><td class="num"><b>${a.idle}</b></td><td class="num">${a.cap ? p1(sold / a.cap) : dash}</td><td class="num"><b style="color:#b3392f">${money0(a.lost)}</b>${a.idle ? `<br><small style="color:var(--text-mute);font-weight:500">${money0(a.lost / a.idle)} / ночь</small>` : ''}</td><td class="num">${a.act}</td><td class="num">${a.canc}</td><td class="num">${a.cancSum ? rubK(a.cancSum) : '—'}</td></tr>`; }).join('');
+  const fundNow = hotels.filter(h => !occH || h === occH).reduce((a, h) => a + Object.values(X.qty[h]).reduce((s, v) => s + v, 0), 0);
+  const catTable = `<div class="trend-card" style="margin-bottom:16px"><h3>🛏️ Простой по категориям<span class="note">${per} · по убыванию потерь</span></h3><div style="overflow-x:auto"><table class="trend-table"><thead><tr><th>Категория</th><th style="text-align:center">Номеров сейчас</th><th style="text-align:center">Доступно ночей</th><th style="text-align:center">Продано</th><th style="text-align:center">Простой, ночей</th><th style="text-align:center">Загрузка</th><th style="text-align:center">Потери</th><th style="text-align:center">Брони</th><th style="text-align:center">Отмены</th><th style="text-align:center">Сумма отмен</th></tr></thead><tbody>${catRows}
+    <tr style="background:#fffdf5;font-weight:800"><td class="loc">Итого</td><td class="num">${fundNow}</td><td class="num">${capT}</td><td class="num">${Math.max(0, capT - idleT)}</td><td class="num">${idleT}</td><td class="num">${capT ? p1(Math.max(0, capT - idleT) / capT) : '—'}</td><td class="num"><b style="color:#b3392f">${money0(lostT)}</b></td><td class="num">${actT}</td><td class="num">${cancT}</td><td class="num">${cancS ? rubK(cancS) : '—'}</td></tr></tbody></table></div></div>`;
+  /* динамика потерь */
+  const baseC = base.filter(x => !occCat || x.c === occCat), by = {}; baseC.forEach(x => { const a = by[x.m] || (by[x.m] = { cap: 0, idle: 0, lost: 0, act: 0, canc: 0 }); ['cap', 'idle', 'lost', 'act', 'canc'].forEach(f => a[f] += x[f]); });
+  const last12 = months.slice(-12), mx = Math.max(1, ...last12.map(k => (by[k] || { lost: 0 }).lost));
+  const W = 720, H = 240, L0 = 10, B0 = 34, T0 = 24, bw = (W - L0 * 2) / last12.length;
+  const chart = `<div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:520px" role="img" aria-label="Потери от простоя по месяцам"><line x1="${L0}" x2="${W - L0}" y1="${H - B0}" y2="${H - B0}" stroke="#e8ecf2"/>${last12.map((k, i) => { const a = by[k] || { lost: 0 }, h = a.lost / mx * (H - B0 - T0), bx = L0 + i * bw + bw * .15, w = bw * .7, y = H - B0 - h, cx = bx + w / 2;
+    return `<g><title>${mLabel(k)}: потери ${money0(a.lost)} · простой ${a.idle || 0} ночей</title><rect x="${bx.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${Math.max(h, a.lost ? 2 : 0).toFixed(1)}" rx="4" fill="${k === cur ? '#e8b74a' : '#b3392f'}"/><text x="${cx.toFixed(1)}" y="${(y - 6).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="700" style="fill:var(--text-dim)">${a.lost ? rubK(a.lost).replace(' тыс', 'k').replace(' млн', 'M') : ''}</text><text x="${cx.toFixed(1)}" y="${H - 16}" text-anchor="middle" font-size="10.5" style="fill:var(--text-mute)">${mLabel(k)}${k === cur ? '*' : ''}</text></g>`; }).join('')}</svg></div>`;
+  const dRows = months.slice(-12).map(k => { const a = by[k] || { cap: 0, idle: 0, lost: 0, act: 0, canc: 0 }, i = months.indexOf(k), pm = i ? by[months[i - 1]] : null;
+    let d = '<td></td><td></td>'; if (k === cur) d = '<td colspan="2" style="text-align:center"><span class="trend-badge flat">неполный месяц</span></td>';
+    else if (pm && pm.lost) { const df = a.lost - pm.lost, up = df > 0; d = `<td style="text-align:center"><span style="font-weight:700;color:${up ? '#dc2626' : '#16a34a'}">${up ? '▲ +' : '▼ −'}${money0(Math.abs(df))}</span></td><td style="text-align:center"><span style="font-weight:700;color:${up ? '#dc2626' : '#16a34a'}">${(up ? '+' : '−') + Math.abs(df / pm.lost * 100).toFixed(1).replace('.', ',')}%</span></td>`; }
+    return `<tr><td class="loc">${mLabel(k)}${k === cur ? '*' : ''}</td><td class="num">${a.cap}</td><td class="num">${Math.max(0, a.cap - a.idle)}</td><td class="num"><b>${a.idle}</b></td><td class="num">${a.cap ? p1(Math.max(0, a.cap - a.idle) / a.cap) : '—'}</td><td class="num"><b style="color:#b3392f">${money0(a.lost)}</b></td>${d}<td class="num">${a.act}</td><td class="num">${a.canc}</td></tr>`; }).reverse().join('');
+  const dyn = `<div class="trend-card" style="margin-bottom:16px"><h3>📈 Динамика потерь по месяцам<span class="note">${occCat || 'все категории'} · красный = потери растут · * месяц не завершён</span></h3>${seg(X.catList, occCat, 'setOccCat', 'Все категории')}${chart}
+    <div style="overflow-x:auto;margin-top:10px"><table class="trend-table"><thead><tr><th>Месяц</th><th style="text-align:center">Доступно ночей</th><th style="text-align:center">Продано</th><th style="text-align:center">Простой, ночей</th><th style="text-align:center">Загрузка</th><th style="text-align:center">Потери</th><th style="text-align:center">Δ потерь</th><th style="text-align:center">%</th><th style="text-align:center">Брони</th><th style="text-align:center">Отмены</th></tr></thead><tbody>${dRows}</tbody></table></div></div>`;
+  /* матрица категория × месяц */
+  const mcols = months.slice(-12), cell = {}; base.forEach(x => { cell[x.c + '|' + x.m + (occH ? '' : '|' + x.h)] = x; });
+  const mrows = [...new Set(base.filter(x => x.cap).map(x => (occH ? '' : x.h + '||') + x.c))];
+  const matRows = mrows.map(key => { const [hh, cc] = key.includes('||') ? key.split('||') : ['', key];
+    return `<tr><td class="loc">${cc}${hh ? `<br><small style="color:var(--text-mute);font-weight:500">${hh}</small>` : ''}</td>${mcols.map(k => { const xs = base.filter(x => x.c === cc && x.m === k && (!hh || x.h === hh)), cap = sum(xs, 'cap'); if (!cap) return '<td class="num">' + dash + '</td>'; const idle = sum(xs, 'idle'), lost = sum(xs, 'lost'); return `<td class="num" style="background:rgba(179,57,47,${(idle / cap * .5).toFixed(2)})" title="${cc} · ${mLabel(k)}: простой ${idle} из ${cap} ночей, потери ${money0(lost)}"><b>${idle}</b><br><small style="color:var(--text-mute);font-weight:500">${rubK(lost)}</small></td>`; }).join('')}</tr>`; }).join('');
+  const matrix = `<div class="trend-card" style="margin-bottom:16px"><h3>🗓️ Простой: категория × месяц<span class="note">пустых ночей и потери · чем краснее, тем больше доля пустых ночей</span></h3><div style="overflow-x:auto"><table class="trend-table"><thead><tr><th>Категория</th>${mcols.map(k => `<th style="text-align:center">${mLabel(k)}</th>`).join('')}</tr></thead><tbody>${matRows}</tbody></table></div></div>`;
+  const overC = {}; X.list.forEach(x => { if (x.over) overC[x.c] = (overC[x.c] || 0) + x.over; });
+  const overTxt = Object.keys(overC).sort((a, b) => overC[b] - overC[a]).slice(0, 4).map(c => `${c}: ${overC[c]}`).join(', ');
+  const notes = `<div class="trend-card"><h3>ℹ️ Как считаются потери<span class="note">оценка, а не бухгалтерская цифра</span></h3><div class="cat-note" style="line-height:1.6">
+    • <b>Доступно ночей</b> = количество номеров (лист «Номера») × дни. <b>Простой</b> = доступные − занятые активными бронями ночи. Отменённые и неподтверждённые брони номер не занимают.<br>
+    • <b>Потери</b> = пустые ночи × средняя цена ночи этой категории в этом месяце (если продаж мало — цена ближайшего месяца). Это упущенная выручка при продаже по обычной цене.<br>
+    • Период: с ${X.startIso.split('-').reverse().join('.')} по вчера (${X.endIso.split('-').reverse().join('.')}); будущие заезды сюда не входят. Брони и отмены — по дате заезда. Категории из «Номера» сопоставляются с бронями по ID или названию.<br>
+    ${overTxt ? `• <b>Внимание:</b> в ${sum(X.list, 'over')} ночей занято больше номеров, чем указано в листе «Номера» (${overTxt}). Возможно, раньше номеров было больше — тогда простой по этим категориям занижен.<br>` : ''}
+    ${X.noCap.length ? `• Есть в бронях, но нет в листе «Номера» (в простой не входят): ${X.noCap.map(x => x.replace('|', ' · ')).join('; ')}.` : ''}</div></div>`;
+  return `<div class="section-title">💸 Простой и потери</div>${bar}${cards}${catTable}${dyn}${matrix}${notes}`;
+}
 function setOccHotel(h) { occHotel = h; renderOcc(); }
 function renderOcc() {
   const root = document.getElementById('occRoot');
@@ -1623,10 +1722,11 @@ function renderOcc() {
   if (unmatched.length) notes.push(`Категории «${sel}» из броней, которых нет в листе «Номера» (сверьте названия): ${unmatched.slice(0, 8).join('; ')}. Загрузка по ним по категориям не считается, но в общую загрузку отеля они входят.`);
   notes.push('Выручка — «Стоимость» активных броней с заездом в период; цена номеро-ночи = выручка ÷ номеро-ночи этих броней.');
   root.innerHTML = `
-    <div class="section-title">🛏 Загрузка номеров <span class="badge">броней в таблице: ${BOOK.length}</span></div>
+    <div class="section-title">🏨 Простой номеров <span class="badge">броней в таблице: ${BOOK.length}</span></div>
     <div class="ins-grid">${tiles}</div>
     ${card('🏨 Загрузка по отелям', 'отель берётся из названия в листах «Бронирования» и «Номера»', TBL(['Отель', 'Номеров в фонде', 'Загрузка за период', 'Забронировано на 30 дн. вперёд', 'Номеро-ночей', 'Броней (актив.)', 'Отмен', 'Неподтв.', 'Выручка по броням', 'Цена номеро-ночи', 'Прочие услуги'], rows))}
     ${withFund.length ? card('📅 Динамика загрузки по месяцам', '* — текущий месяц · ↗ будущие месяцы: уже забронированная доля', `<div style="overflow-x:auto"><table class="heat"><thead>${monHead}</thead><tbody>${monRows}</tbody></table></div>`) : ''}
+    ${occLossHtml()}
     ${card('🛏 Категории номеров', `<select onchange="setOccHotel(this.value)" style="margin-left:8px">${hs.map(h => `<option ${h === sel ? 'selected' : ''}>${h}</option>`).join('')}</select>`, (catRows.length ? TBL(['Категория', 'В фонде, шт', 'Номеро-ночей', 'Доля', 'Загрузка категории'], catRows) : '<div class="cat-note">За период нет проданных номеро-ночей.</div>') + (othRows.length ? '<div style="margin-top:12px">' + TBL(['Прочие услуги (не номера)', 'Броней'], othRows) + '</div>' : ''))}
     ${card('ℹ️ Как считается и ограничения', '', `<div class="cat-note">${notes.map(n => '• ' + n).join('<br>')}</div>`)}`;
 }

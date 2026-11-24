@@ -1525,6 +1525,15 @@ function renderJivoAds() {
     const byHotel = by(J, x => x.hotel || 'Таргет-воронка без отеля');
     html += card('📍 Лиды по локациям', 'сколько лидов поступило и как закрыто; таргет — воронки «Таргет …»', TBL(['Локация', 'Лидов', 'из них таргет', 'из них другие воронки', 'Закрыто', '↳ успешно', '↳ отказ', 'В работе', 'Успешных от закрытых'],
       byHotel.map(([n, l]) => { const s = st(l); return [n, s.n, l.filter(x => x.src === 'target').length, l.filter(x => x.src !== 'target').length, s.closed, s.won, s.ref, s.open, pc(s.won, s.closed)]; })));
+    /* сделки и сумма по локациям: обычный лид против таргета */
+    const sm = l => l.filter(x => x.stage === WON).reduce((a, x) => a + (x.amount || 0), 0), cv = l => { const s = st(l); return s; };
+    const grp3 = l => { const s = st(l); return [s.n, s.won, s.won ? rub(sm(l)) : '—']; };
+    const srcRows = byHotel.map(([n, l]) => { const t = l.filter(x => x.src === 'target'), o = l.filter(x => x.src !== 'target'), s = st(l); return [n === 'AI-сделки' ? 'AI-сделки <small style="color:var(--text-mute)">(локация не определена)</small>' : n, ...grp3(o), ...grp3(t), s.n, s.won, s.won ? rub(sm(l)) : '—', pc(s.won, s.closed)]; });
+    const allT = J.filter(x => x.src === 'target'), allO = J.filter(x => x.src !== 'target');
+    srcRows.push(['<b>Итого</b>', ...grp3(allO), ...grp3(allT), T0.n, T0.won, T0.won ? rub(sm(J)) : '—', pc(T0.won, T0.closed)]);
+    const noAmt = J.filter(x => x.stage === WON && !x.amount).length;
+    html += card('💰 Сделки и сумма по локациям: обычный лид и таргет', 'откуда пришла продажа — из обычного лида или с таргета · сумма — «Сумма сделки» у успешных', TBL(['Локация', 'Обычные: лидов', 'Обычные: успешно', 'Обычные: сумма', 'Таргет: лидов', 'Таргет: успешно', 'Таргет: сумма', 'Всего лидов', 'Всего успешно', 'Всего сумма', 'Конверсия от закрытых'], srcRows)
+      + `<div class="cat-note" style="margin-top:8px">«Таргет» — воронки «Таргет …» в Jivo, «Обычные» — все остальные. ${noAmt ? `У ${noAmt} успешных сделок сумма не заполнена — в сумму они не вошли. ` : ''}Воронка «AI-сделки» не привязана к отелю, поэтому показана отдельной строкой.</div>`);
     /* операторы × локации */
     const hs = byHotel.map(x => x[0]);
     const opRows = by(J, x => x.op).map(([n, l]) => { const s = st(l); return [n, s.n, s.won, s.ref, s.open, pc(s.won, s.closed), ...hs.map(h => { const q = l.filter(x => (x.hotel || 'Таргет-воронка без отеля') === h); return q.length ? `${q.length}<span style="color:#16a34a;font-size:11px"> ✓${q.filter(x => x.stage === WON).length}</span>` : '—'; })]; });

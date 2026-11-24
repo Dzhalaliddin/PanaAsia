@@ -447,6 +447,15 @@
   .heat td.low{opacity:.55;font-style:italic}
   .heat td.hname{background:transparent;font-weight:700;text-align:left;padding-left:2px}
   .heat tr.netrow td{background:#fffdf5;border:1px dashed var(--gold)}
+  .sumcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-bottom:16px}
+  .sumcard{background:#fff;border-radius:16px;padding:16px 18px;box-shadow:0 2px 10px rgba(15,42,74,.06)}
+  .sumcard h4{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:15px;color:var(--primary);margin-bottom:10px}
+  .sumcard .rt{display:flex;gap:6px;flex-wrap:wrap}.sumcard .rt span{font-size:11px;font-weight:700;padding:3px 9px;border-radius:100px;background:#eef1f6;color:var(--text-dim)}
+  .sumcard .mg{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin-top:12px}
+  .sumcard .mg div{font-size:11px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.03em}
+  .sumcard .mg b{display:block;font-size:18px;color:var(--text);text-transform:none;letter-spacing:0;margin-top:1px}
+  .sumcard .mg small{display:block;font-size:11px;color:var(--text-dim);text-transform:none;letter-spacing:0}
+  .nbar{display:flex;height:8px;border-radius:100px;overflow:hidden;background:#eef1f6}.nbar i{display:block;height:100%}
   .ins.w{border-left-color:var(--gold)}
   .ins-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin-bottom:16px}
   .ins{background:#fff;border-radius:14px;padding:14px 16px;box-shadow:0 2px 10px rgba(15,42,74,.08);border-left:4px solid var(--gold);font-size:13px;line-height:1.55}
@@ -517,7 +526,8 @@
 
   <div style="display:flex;align-items:center;gap:10px;justify-content:flex-end;margin:0 0 12px;flex-wrap:wrap"><span style="font-size:12px;color:var(--text-dim)">Период (отзывы, обращения, Jivo, маркетинг):</span><div class="seg vseg" style="margin-left:0"><button data-d="7" onclick="setView(7)">7 дней</button><button data-d="14" onclick="setView(14)" class="on">2 недели</button><button data-d="30" onclick="setView(30)">Месяц</button><button data-d="90" onclick="setView(90)">Квартал</button><button data-d="0" onclick="setView(0)">Всё время</button></div></div>
     <div class="tabs">
-    <div class="tab active" onclick="showTab(0, this)">📊 Статистика</div>
+    <div class="tab active" onclick="showTab(8, this)">🏠 Сводка</div>
+    <div class="tab" onclick="showTab(0, this)">📊 Статистика</div>
     <div class="tab" onclick="showTab(1, this)">📋 Реестр отзывов</div>
     <div class="tab" onclick="showTab(2, this)">📅 Календарь</div>
     <div class="tab" onclick="showTab(3, this)">🏆 Категории Booking</div>
@@ -528,7 +538,8 @@
   </div>
 
   <!-- ═══════════ СТАТИСТИКА ═══════════ -->
-  <div class="panel active" id="panel-0">
+  <div class="panel active" id="panel-8" style="max-width:1500px;margin:0 auto"><div id="sumRoot"></div></div>
+  <div class="panel" id="panel-0">
 
     <div class="stats-grid" id="statsCards"></div>
 
@@ -1740,6 +1751,52 @@ function renderOcc() {
     ${card('ℹ️ Как считается и ограничения', '', `<div class="cat-note">${notes.map(n => '• ' + n).join('<br>')}</div>`)}`;
 }
 
+
+/* ============================================================
+   🏠 СВОДКА: главные цифры по каждой локации на одном экране
+   ============================================================ */
+function renderSummary() {
+  const root = document.getElementById('sumRoot'); if (!root) return;
+  const R = rows, S = inWin(SALES, x => x.booked), J = inWin(JIVO, x => x.created), WON = 'Успешно завершена';
+  const X = (typeof occCalc === 'function' && BOOK.length) ? occCalc() : null, curM = X ? X.endIso.slice(0, 7) : '';
+  const names = locations.map(l => l.name);
+  const C = CALLS.length ? callStats() : null;
+  const per = viewDays ? viewLabel() : 'за всё время';
+  const neg = R.filter(r => r.typeNorm === 'Отрицательный').length, pos = R.filter(r => r.typeNorm === 'Положительный').length;
+  const sumS = S.reduce((a, x) => a + x.amount, 0), jWon = J.filter(x => x.stage === WON);
+  const jSum = jWon.reduce((a, x) => a + (x.amount || 0), 0);
+  const lostAll = X ? X.list.filter(x => x.m === curM).reduce((a, x) => a + x.lost, 0) : null;
+  const tiles = [
+    ['b', '📝 Отзывы', `<b style="font-size:24px;color:var(--text)">${R.length}</b><br>негатив ${R.length ? Math.round(neg / R.length * 100) : 0}% · позитив ${R.length ? Math.round(pos / R.length * 100) : 0}%`],
+    ['gold', '💰 Продажи (брони)', `<b style="font-size:24px;color:var(--text)">${S.length ? rubK(sumS) : '—'}</b><br>${S.length} броней`],
+    ['g', '🎯 Лиды Jivo', `<b style="font-size:24px;color:var(--text)">${J.length}</b><br>успешно ${jWon.length}${jSum ? ' · ' + rubK(jSum) : ''}`],
+    C && ['' + (C.F.miss / Math.max(C.F.base, 1) > .1 ? 'r' : 'g'), '📞 Пропущенные звонки', `<b style="font-size:24px;color:var(--text)">${pc(C.F.miss, C.F.base)}</b><br>${C.F.miss} из ${C.F.base} входящих`],
+    lostAll != null && ['r', '🏨 Потери от простоя', `<b style="font-size:24px;color:var(--text)">${rubK(lostAll)}</b><br>${mLabel(curM)} (идёт месяц)`]
+  ].filter(Boolean).map(([c, t, x]) => `<div class="ins ${c === 'gold' ? 'w' : c}"><b class="t">${t}</b>${x}</div>`).join('');
+  const cards = locations.map(l => {
+    const lr = R.filter(r => r.loc === l.name), n = lr.length, ng = lr.filter(r => r.typeNorm === 'Отрицательный').length, ps = lr.filter(r => r.typeNorm === 'Положительный').length, nu = n - ng - ps;
+    const ls = S.filter(x => x.loc === l.name), lj = J.filter(x => x.hotel === l.name), lw = lj.filter(x => x.stage === WON);
+    const xo = X ? X.list.filter(x => x.h === l.name) : [], cap = xo.filter(x => x.m === curM).reduce((a, x) => a + x.cap, 0), idle = xo.filter(x => x.m === curM).reduce((a, x) => a + x.idle, 0), lost = xo.filter(x => x.m === curM).reduce((a, x) => a + x.lost, 0);
+    const d = +(l.gis - l.gisPrev).toFixed(1);
+    return `<div class="sumcard"><h4>${l.name}<span class="rt"><span>2ГИС ${l.gis.toFixed(1)}${d ? (d > 0 ? ' ▲' : ' ▼') : ''}</span>${l.booking != null ? `<span>Booking ${f1(l.booking)}</span>` : ''}</span></h4>
+      <div class="nbar" title="позитив / нейтрал / негатив">${n ? `<i style="width:${ps / n * 100}%;background:#2e9e5b"></i><i style="width:${nu / n * 100}%;background:#e6a817"></i><i style="width:${ng / n * 100}%;background:#d9534f"></i>` : ''}</div>
+      <div class="mg">
+        <div>Отзывы<b>${n}</b><small>негатив ${n ? Math.round(ng / n * 100) : 0}% (${ng})</small></div>
+        <div>Брони<b>${ls.length ? rubK(ls.reduce((a, x) => a + x.amount, 0)) : '—'}</b><small>${ls.length} шт.</small></div>
+        <div>Лиды Jivo<b>${lj.length || '—'}</b><small>${lj.length ? 'успешно ' + lw.length : 'нет привязки'}</small></div>
+        <div>Простой (мес.)<b>${cap ? Math.round((cap - idle) / cap * 100) + '%' : '—'}</b><small>${cap ? 'потери ' + rubK(lost) : 'нет номерного фонда'}</small></div>
+      </div></div>`; }).join('');
+  /* динамика отзывов по месяцам (весь реестр) */
+  const mo = {}; ALL.forEach(r => { const k = isoD(r.date).slice(0, 7); if (!/^\d{4}-\d\d$/.test(k)) return; const a = mo[k] || (mo[k] = { p: 0, u: 0, n: 0 }); if (r.typeNorm === 'Положительный') a.p++; else if (r.typeNorm === 'Отрицательный') a.n++; else a.u++; });
+  const ks = Object.keys(mo).sort().slice(-12), mx = Math.max(1, ...ks.map(k => mo[k].p + mo[k].u + mo[k].n)), W = 760, H = 230, B = 30, T = 18, bw = W / Math.max(ks.length, 1);
+  const chart = ks.length ? `<div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:520px" role="img" aria-label="Отзывы по месяцам">${ks.map((k, i) => { const a = mo[k], u = H - B, hp = a.p / mx * (H - B - T), hu = a.u / mx * (H - B - T), hn = a.n / mx * (H - B - T), x = i * bw + bw * .18, w = bw * .64, tot = a.p + a.u + a.n;
+    return `<g><title>${mLabel(k)}: всего ${tot} · позитив ${a.p} · нейтрал ${a.u} · негатив ${a.n}</title><rect x="${x.toFixed(1)}" y="${(u - hp).toFixed(1)}" width="${w.toFixed(1)}" height="${hp.toFixed(1)}" fill="#2e9e5b"/><rect x="${x.toFixed(1)}" y="${(u - hp - hu).toFixed(1)}" width="${w.toFixed(1)}" height="${hu.toFixed(1)}" fill="#e6a817"/><rect x="${x.toFixed(1)}" y="${(u - hp - hu - hn).toFixed(1)}" width="${w.toFixed(1)}" height="${hn.toFixed(1)}" rx="3" fill="#d9534f"/><text x="${(x + w / 2).toFixed(1)}" y="${(u - hp - hu - hn - 5).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="700" style="fill:var(--text-dim)">${tot}</text><text x="${(x + w / 2).toFixed(1)}" y="${H - 10}" text-anchor="middle" font-size="10.5" style="fill:var(--text-mute)">${mLabel(k)}</text></g>`; }).join('')}</svg></div><div class="cat-note" style="margin-top:6px">🟢 позитив · 🟡 нейтрал · 🔴 негатив</div>` : '';
+  root.innerHTML = `<div class="section-title">🏠 Сводка по сети <span class="badge">${per}</span></div>
+    <div class="ins-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">${tiles}</div>
+    <div class="section-title">🏨 По локациям</div><div class="sumcards">${cards}</div>
+    ${chart ? card('📆 Отзывы по месяцам', 'вся история реестра, не зависит от переключателя периода', chart) : ''}`;
+}
+
 /* ============================================================
    📥 ЗАГРУЗКА ДАННЫХ (встроенный снимок + живая выгрузка из Google Таблицы)
    ============================================================ */
@@ -1763,7 +1820,7 @@ function applyView() {
 }
 function setView(d) { viewDays = d; applyView(); refreshAll(); }
 function refreshAll() {
-  fillCities(); renderStats(); renderPeriodTrends(); renderHotelTrends(); renderRatings(); renderLocations(); renderBreakdowns(); renderRows(); renderCats(); renderSales(); renderComms(); renderJivoAds(); renderOcc();
+  fillCities(); renderStats(); renderPeriodTrends(); renderHotelTrends(); renderRatings(); renderLocations(); renderBreakdowns(); renderRows(); renderCats(); renderSales(); renderComms(); renderJivoAds(); renderOcc(); renderSummary();
   if (document.getElementById('panel-2').classList.contains('active')) renderCal();
 }
 /* Вставьте сюда URL веб-приложения Apps Script (…/exec) или задайте window.SHEET_URL на странице-родителе */

@@ -1511,13 +1511,16 @@ function renderComms() {
    Лид = сделка в Jivo. Закрытая сделка = этап «Успешно завершена» или «Отказ». В работе = все остальные этапы.
    Воронка → отель берётся из Code.gs (FUNNEL_HOTEL и название воронки), таргет — воронки «Таргет …».
    ============================================================ */
+let jivoMode = 'all';
+function setJivoMode(m) { jivoMode = m; renderJivoAds(); }
 function renderJivoAds() {
   const root = document.getElementById('jivoRoot'), J = inWin(JIVO, x => x.created);
   const WON = 'Успешно завершена', REF = 'Отказ';
   const st = l => { const won = l.filter(x => x.stage === WON).length, ref = l.filter(x => x.stage === REF).length; return { n: l.length, won, ref, open: l.length - won - ref, closed: won + ref }; };
   const by = (l, f) => Object.entries(l.reduce((m, x) => ((m[f(x) || '—'] = m[f(x) || '—'] || []).push(x), m), {})).sort((x, y) => y[1].length - x[1].length);
   const topReason = l => { const r = {}; l.filter(x => x.stage === REF).forEach(x => { const k = x.reason || 'не указана'; r[k] = (r[k] || 0) + 1; }); const t = Object.entries(r).sort((x, y) => y[1] - x[1])[0]; return t ? `${t[0]} (${t[1]})` : '—'; };
-  let html = `<div class="section-title">🎯 Jivo и маркетинг <span class="badge">сделки ${span(J, x => x.created)}</span></div>`;
+  const header = `<div class="section-title">🎯 Jivo и маркетинг <span class="badge">сделки ${span(J, x => x.created)}</span><span class="seg" style="margin-left:auto"><button class="${jivoMode === 'all' ? 'on' : ''}" onclick="setJivoMode('all')">🎯 Jivo: все лиды</button><button class="${jivoMode === 'mkt' ? 'on' : ''}" onclick="setJivoMode('mkt')">📣 Маркетинг (таргет)</button></span></div>`;
+  let html = '';
   if (!JIVO.length) html += NODATA('Нет сделок Jivo', 'Лист «JivoSite» пуст или не найден.');
   else {
     const T0 = st(J), reasons = {}; J.filter(x => x.stage === REF).forEach(x => { const k = x.reason || 'не указана'; reasons[k] = (reasons[k] || 0) + 1; });
@@ -1554,6 +1557,8 @@ function renderJivoAds() {
     html += card('📡 Каналы связи сделок', '', TBL(['Канал', 'Лидов', 'Успешно', 'Конверсия'], by(J, x => x.channel).map(([n, l]) => { const s = st(l); return [n, s.n, s.won, pc(s.won, s.n)]; })));
   }
   /* --- таргет --- */
+  const htmlJ = html; html = '';
+  let Aout = [];
   const AR = ADS.rows || [], mark = [];
   if (!AR.length) html += NODATA('Нет данных таргета', 'Листы «Таргет …» пусты или формат отличается от шаблона (блок отеля начинается со строки, где в колонке B написано «Столбец 1»).');
   else {
@@ -1561,6 +1566,7 @@ function renderJivoAds() {
     const from = viewDays ? isoS(f) : '', W = AR.filter(r => !from || r.to >= from);
     const hotels = [...new Set(W.map(r => r.hotel))], sum = (l, k) => { const v = l.map(r => r[k]).filter(x => x != null); return v.length ? v.reduce((a, x) => a + x, 0) : null; };
     const A = hotels.map(h => { const l = W.filter(r => r.hotel === h); return { h, l, cur: l[0].cur, sp: sum(l, 'spend'), im: sum(l, 'impressions'), re: sum(l, 'reach'), cl: sum(l, 'clicks'), le: sum(l, 'leads'), bk: sum(l, 'bookings'), rv: sum(l, 'revenue'), fr: l.map(r => r.from).sort()[0], to: l.map(r => r.to).sort().pop() }; });
+    Aout = A;
     const rowsA = A.map(a => [a.h, a.sp != null ? nf(a.sp, 2) + ' ' + a.cur : '—', nf(a.im), nf(a.re), nf(a.cl), a.im ? pc(a.cl, a.im) : '—', nf(a.le), a.le && a.sp != null ? nf(a.sp / a.le, 2) + ' ' + a.cur : '—', a.sp != null && a.cl ? nf(a.sp / a.cl, 3) + ' ' + a.cur : '—', a.bk != null ? nf(a.bk) : '—', a.rv != null && a.sp ? nf(a.rv / a.sp, 2) : '—']);
     const wk = W.slice().sort((x, y) => x.hotel.localeCompare(y.hotel) || x.from.localeCompare(y.from)).map(r => [r.hotel, ddmm(r.from) + '–' + ddmm(r.to), nf(r.spend, 2) + ' ' + r.cur, nf(r.impressions), nf(r.clicks), nf(r.leads)]);
     /* заявки таргета ↔ лиды, внесённые операторами */
@@ -1581,8 +1587,40 @@ function renderJivoAds() {
     const raw = [...new Set(J.map(x => x.op).filter(o => o.includes('@')))]; if (raw.length) mark.push('Почты операторов Jivo без имени: ' + raw.join(', ') + ' — добавьте в NAME_ALIASES (Code.gs).');
     mark.push('Колонки «Ответственный по клиенту», «Источник перехода» и «Теги» в листе Jivo почти не заполнены — источник сделки определяется только по воронке и каналу связи.');
   }
-  html += card('ℹ️ Качество данных и ограничения', '', `<div class="cat-note">${mark.map(n => '• ' + n).join('<br>')}</div>`);
-  root.innerHTML = html;
+
+  /* --- вкладка «Маркетинг (таргет)»: сколько таргета, лидов и конверсия именно по таргету --- */
+  const mktHtml = () => {
+    const T = J.filter(x => x.src === 'target'), O = J.filter(x => x.src !== 'target'), sT = st(T), sO = st(O);
+    const sumA = (k) => { const v = Aout.map(a => a[k]).filter(x => x != null); return v.length ? v.reduce((a, x) => a + x, 0) : null; };
+    const leadsRep = sumA('le'), curs = [...new Set(Aout.map(a => a.cur).filter(Boolean))], spend = sumA('sp'), amtT = T.filter(x => x.stage === WON).reduce((a, x) => a + (x.amount || 0), 0), amtO = O.filter(x => x.stage === WON).reduce((a, x) => a + (x.amount || 0), 0);
+    if (!T.length && !Aout.length) return NODATA('Нет данных по таргету', 'В Jivo нет сделок в воронках «Таргет …» за выбранный период, и лист «Таргет …» пуст.');
+    const big = (c, n, t, x) => `<div class="ins ${c}"><b class="t">${t}</b><b style="display:block;font-size:26px;color:var(--text);text-transform:none;letter-spacing:0">${n}</b>${x}</div>`;
+    const tiles = `<div class="ins-grid">
+      ${big('b', T.length, '📣 Лидов по таргету (Jivo)', `${pc(T.length, J.length)} от всех лидов (${J.length})`)}
+      ${big('g', sT.won, '✅ Успешно с таргета', `${sT.won ? 'сумма ' + rub(amtT) : 'пока нет успешных'}`)}
+      ${big('g', pc(sT.won, sT.closed), '🎯 Конверсия по таргету', `от закрытых: ${sT.won} из ${sT.closed}<br>от всех лидов: ${pc(sT.won, sT.n)}`)}
+      ${big('', sT.ref + ' / ' + sT.open, '⛔ Отказ / ⏳ в работе', `топ причина: ${topReason(T)}`)}
+      ${leadsRep != null ? big('w', nf(leadsRep), '📝 Заявок таргета (отчёт)', `в Jivo внесено ${T.length} (${pc(T.length, leadsRep)})`) : ''}
+      ${spend != null ? big('w', curs.length === 1 ? nf(spend, 2) + ' ' + curs[0] : 'см. таблицу', '💰 Расход на таргет', curs.length === 1 ? (T.length ? 'цена лида: ' + nf(spend / T.length, 2) + ' ' + curs[0] + (sT.won ? '<br>цена успешной: ' + nf(spend / sT.won, 2) + ' ' + curs[0] : '') : '') : 'в отчёте разные единицы — суммы по отелям ниже') : ''}
+    </div>`;
+    /* таргет против обычных */
+    const cmp = [['📣 Таргет', sT, amtT], ['👥 Обычные лиды (без таргета)', sO, amtO]].map(([n, s0, a]) => [n, s0.n, s0.closed, s0.won, s0.ref, s0.open, pc(s0.won, s0.closed), pc(s0.won, s0.n), s0.won ? rub(a) : '—']);
+    /* по таргет-воронкам */
+    const fRows = by(T, x => x.funnel).map(([f, l]) => { const s0 = st(l), h = l[0].hotel, a = Aout.find(z => z.h === h), cur = a ? a.cur : '';
+      return [f, h || '—', a && a.le != null ? nf(a.le) : '—', s0.n, s0.closed, s0.won, s0.ref, s0.open, pc(s0.won, s0.closed), pc(s0.won, s0.n), a && a.le ? pc(s0.won, a.le) : '—', s0.won ? rub(l.filter(x => x.stage === WON).reduce((q, x) => q + (x.amount || 0), 0)) : '—', a && a.sp != null && s0.n ? nf(a.sp / s0.n, 2) + ' ' + cur : '—', a && a.sp != null && s0.won ? nf(a.sp / s0.won, 2) + ' ' + cur : '—']; });
+    /* по неделям */
+    const wk0 = d => { const t = new Date(d.slice(0, 10) + 'T00:00:00'); const w = (t.getDay() + 6) % 7; t.setDate(t.getDate() - w); return isoS(t); };
+    const wkm = {}; T.forEach(x => { const k = wk0(x.created); (wkm[k] = wkm[k] || []).push(x); });
+    const wkRows = Object.keys(wkm).sort().reverse().map(k => { const l = wkm[k], s0 = st(l), e = new Date(k + 'T00:00:00'); e.setDate(e.getDate() + 6); return [ddmm(k) + '–' + dmS(e), s0.n, s0.closed, s0.won, s0.ref, s0.open, pc(s0.won, s0.closed)]; });
+    const rs = {}; T.filter(x => x.stage === REF).forEach(x => { const k = x.reason || 'не указана'; rs[k] = (rs[k] || 0) + 1; });
+    return tiles
+      + card('⚖️ Таргет и обычные лиды', 'откуда пришли сделки и как они закрываются', TBL(['Источник', 'Лидов', 'Закрыто', '↳ успешно', '↳ отказ', 'В работе', 'Успешных от закрытых', 'Успешных от всех лидов', 'Сумма успешных'], cmp))
+      + card('📣 Таргет по воронкам и отелям', 'заявки — из отчёта таргета, лиды — сделки в Jivo; расход — из отчёта (единицы расхода как в отчёте)', T.length ? TBL(['Воронка', 'Отель', 'Заявок (отчёт)', 'Лидов в Jivo', 'Закрыто', '↳ успешно', '↳ отказ', 'В работе', 'Конверсия от закрытых', 'Успешных от лидов', 'Успешных от заявок', 'Сумма успешных', 'Цена лида', 'Цена успешной'], fRows) : '<div class="cat-note">За период в таргет-воронках Jivo сделок нет.</div>')
+      + (wkRows.length ? card('📅 Таргет по неделям', 'лиды по дате создания сделки, неделя с понедельника', TBL(['Неделя', 'Лидов', 'Закрыто', '↳ успешно', '↳ отказ', 'В работе', 'Конверсия от закрытых'], wkRows)) : '')
+      + (Object.keys(rs).length ? card('⛔ Причины отказов по таргету', 'доля среди отказов таргета', TBL(['Причина', 'Отказов', 'Доля'], Object.entries(rs).sort((x, y) => y[1] - x[1]).map(([k, v]) => [k, v, pc(v, sT.ref)]))) : '');
+  };
+  const qual = card('ℹ️ Качество данных и ограничения', '', `<div class="cat-note">${mark.map(n => '• ' + n).join('<br>')}</div>`);
+  root.innerHTML = header + (jivoMode === 'mkt' ? mktHtml() + html : htmlJ) + qual;
 }
 
 /* ============================================================

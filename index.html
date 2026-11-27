@@ -516,6 +516,55 @@
   .fbar label { display:flex; flex-direction:column; gap:3px; font-size:10.5px; font-weight:700; color:var(--text-dim); text-transform:uppercase; letter-spacing:.3px; }
   .fbar select, .fbar input { padding:8px 10px; border:1px solid #d5dce6; border-radius:12px; font:12.5px inherit; font-family:inherit; background:#fff; color:var(--text); min-width:130px; text-transform:none; }
   @media (max-width: 700px) { .fbar label { flex:1 1 44%; } .fbar select, .fbar input { min-width:0; width:100%; } }
+
+/* ═══════════ ДИЗАЙН: стекло, переливы, иконки каналов ═══════════ */
+html { background: #eaf0f8; }
+body { background: transparent !important; position: relative; }
+body::before { content:''; position:fixed; inset:-20%; z-index:-1; pointer-events:none;
+  background:
+    radial-gradient(40% 40% at 15% 20%, rgba(61,143,191,.34), transparent 70%),
+    radial-gradient(38% 38% at 85% 15%, rgba(201,162,39,.26), transparent 70%),
+    radial-gradient(45% 45% at 70% 85%, rgba(46,158,91,.22), transparent 70%),
+    radial-gradient(35% 35% at 10% 85%, rgba(155,89,182,.20), transparent 70%),
+    linear-gradient(135deg, #eef4fc, #f7f1fb 55%, #eef8f4);
+  animation: aurora 26s ease-in-out infinite alternate; }
+@keyframes aurora { 0% { transform: translate3d(0,0,0) scale(1); } 50% { transform: translate3d(3%,-2%,0) scale(1.08); } 100% { transform: translate3d(-3%,3%,0) scale(1.04); } }
+
+.stat-card, .trend-card, .ins, .sumcard, .fbar, .table-wrap, .hcard, .cd, .md, .loc-card, .breakdown, .bd-card, .cal-sel, .cal-btn {
+  background: rgba(255,255,255,.58) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(1.5); backdrop-filter: blur(16px) saturate(1.5);
+  border-top: 1px solid rgba(255,255,255,.9); border-right: 1px solid rgba(255,255,255,.5); border-bottom: 1px solid rgba(255,255,255,.4);
+  box-shadow: 0 8px 28px rgba(15,42,74,.09), inset 0 1px 0 rgba(255,255,255,.8) !important; }
+.stat-card, .ins { border-left-width: 4px !important; }
+.trend-card, .sumcard, .stat-card, .ins, .hcard { transition: transform .35s cubic-bezier(.4,0,.2,1), box-shadow .35s; }
+.trend-card:hover, .sumcard:hover, .ins:hover, .hcard:hover { transform: translateY(-3px); box-shadow: 0 16px 38px rgba(15,42,74,.15), inset 0 1px 0 rgba(255,255,255,.9) !important; }
+.tabs { background: rgba(255,255,255,.5) !important; -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6); border: 1px solid rgba(255,255,255,.8) !important; }
+.tab.active { background: linear-gradient(120deg,#0f2a4a,#1f5a8c,#0f2a4a) !important; background-size: 200% 100% !important; animation: tabflow 6s ease-in-out infinite; }
+@keyframes tabflow { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+
+/* переливающиеся заголовки */
+@keyframes shimmer { to { background-position: 300% 50%; } }
+h1 > span, .section-title, .stat-card .stat-value, .trend-card h3, .sumcard h4 {
+  background-image: linear-gradient(90deg, #0f2a4a 0%, #1f6fb5 25%, #12a6a0 50%, #7b4fb8 75%, #0f2a4a 100%);
+  background-size: 300% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: shimmer 9s linear infinite; }
+.section-title > *, .trend-card h3 > *, .sumcard h4 > * { -webkit-text-fill-color: currentColor; }
+.stat-card.negative .stat-value { background-image: linear-gradient(90deg,#d9534f,#ff8a5c,#d9534f); }
+.stat-card.positive .stat-value { background-image: linear-gradient(90deg,#2e9e5b,#7bd88f,#2e9e5b); }
+.stat-card.warning .stat-value { background-image: linear-gradient(90deg,#e6a817,#ffd36b,#e6a817); }
+.stat-card.negative .stat-value, .stat-card.positive .stat-value, .stat-card.warning .stat-value { background-size: 200% 100%; animation-duration: 5s; }
+h1 { filter: drop-shadow(0 2px 8px rgba(47,127,184,.18)); }
+.section-title .badge { background: linear-gradient(120deg, var(--gold), #e8b74a, var(--gold)) !important; background-size: 200% 100%; animation: tabflow 5s ease-in-out infinite; color:#1a2233 !important; -webkit-text-fill-color: #1a2233 !important; }
+
+/* иконки каналов */
+.br { display:inline-flex; align-items:center; gap:6px; vertical-align:middle; white-space:nowrap; }
+.br svg, .br i.ic { width:18px; height:18px; flex:none; border-radius:5px; display:inline-block; }
+.br i.ic { font-style:normal; font:800 10px/18px system-ui,sans-serif; text-align:center; color:#fff; }
+.ic.g2 { background:linear-gradient(135deg,#1fb52a,#0d8a1c); font-size:8.5px !important; letter-spacing:-.3px; }
+.ic.bk { background:#003580; font-size:12px !important; }
+.ic.ya { background:#fc3f1d; border-radius:50% !important; font-size:11px !important; }
+.ic.gg { background:#fff; color:#4285f4 !important; font-size:12px !important; box-shadow:inset 0 0 0 1px #dadce0; }
+@media (prefers-reduced-motion: reduce) { body::before, .tab.active, .section-title, .section-title .badge, h1 > span, .stat-card .stat-value, .trend-card h3, .sumcard h4 { animation: none !important; } }
+@media (max-width: 700px) { .stat-card, .trend-card, .ins, .sumcard, .fbar, .tabs { -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); } }
 </style>
 </head>
 <body>
@@ -1876,6 +1925,34 @@ const SHEET_URL = (function () { try { return parent.SHEET_URL; } catch (e) {} }
     applyPayload(R);
     note.textContent = 'Данные из таблицы · обновлено ' + R.updated + ' · отзывов: ' + R.rows.length + (R.stats ? ' · ' + R.stats.map(x => x.sheet + ': в листе ' + x.inSheet + ', выгружено ' + x.loaded + (x.note ? ' (' + x.note + ')' : '')).join('; ') : '');
   }).catch(e => { note.textContent = 'Не удалось загрузить таблицу (' + e.message + ') — показаны данные из файла'; });
+})();
+
+/* ═══════════ ИКОНКИ КАНАЛОВ (Instagram, 2ГИС, Booking и т.д.) ═══════════ */
+(function () {
+  const svgDefs = '<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="igG" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#feda75"/><stop offset=".3" stop-color="#fa7e1e"/><stop offset=".55" stop-color="#d62976"/><stop offset=".8" stop-color="#962fbf"/><stop offset="1" stop-color="#4f5bd5"/></linearGradient></defs></svg>';
+  document.body.insertAdjacentHTML('afterbegin', svgDefs);
+  const I = {
+    ig: '<svg viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="url(#igG)"/><rect x="5.2" y="5.2" width="13.6" height="13.6" rx="4" fill="none" stroke="#fff" stroke-width="1.7"/><circle cx="12" cy="12" r="3.2" fill="none" stroke="#fff" stroke-width="1.7"/><circle cx="16.3" cy="7.7" r="1" fill="#fff"/></svg>',
+    g2: '<i class="ic g2">2ГИС</i>', bk: '<i class="ic bk">B.</i>', ya: '<i class="ic ya">Я</i>', gg: '<i class="ic gg">G</i>',
+    mail: '<svg viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="#5a6a80"/><rect x="5" y="7" width="14" height="10" rx="1.6" fill="none" stroke="#fff" stroke-width="1.6"/><path d="M5.5 8l6.5 5 6.5-5" fill="none" stroke="#fff" stroke-width="1.6"/></svg>',
+    ph: '<svg viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="#2e9e5b"/><path d="M8.2 6.5c-.6.5-1 1.2-.9 2 .6 3.4 3.2 6.2 6.6 7.3.8.2 1.5 0 2-.6l.4-.6c.2-.4.1-.8-.3-1l-1.6-.9c-.3-.2-.7-.1-.9.1l-.5.5c-1.3-.5-2.4-1.6-2.9-2.9l.5-.5c.3-.2.3-.6.1-.9L9.5 6.8c-.2-.4-.7-.5-1.1-.3z" fill="#fff"/></svg>',
+    qr: '<svg viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="#1a2233"/><g fill="#fff"><rect x="5" y="5" width="5" height="5" rx=".8"/><rect x="14" y="5" width="5" height="5" rx=".8"/><rect x="5" y="14" width="5" height="5" rx=".8"/><rect x="14" y="14" width="2" height="2"/><rect x="17" y="17" width="2" height="2"/></g></svg>',
+    web: '<svg viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="#3d8fbf"/><circle cx="12" cy="12" r="6" fill="none" stroke="#fff" stroke-width="1.5"/><path d="M6 12h12M12 6c2 2 2 10 0 12M12 6c-2 2-2 10 0 12" fill="none" stroke="#fff" stroke-width="1.3"/></svg>'
+  };
+  const rules = [[/^(2gis|2гис)(?=$|[\s(])/i, 'g2'], [/^booking(\.com)?(?=$|[\s(])/i, 'bk'], [/^яндекс(?=$|[\s(])/i, 'ya'], [/^google(?=$|[\s(])/i, 'gg'], [/^instagram(?=$|[\s(])/i, 'ig'], [/^qr(?=$|[\s(])/i, 'qr'], [/^call centre/i, 'ph'],
+    [/^(pana_hotels|kolsay\.nomads|pana\.asia)(?=$|[\s(.])/i, 'ig'], [/^(почта|info\.pana|.+@.+\..+$)/i, 'mail'], [/^pana-asia\.kz/i, 'web'], [/^(pana asia|sandyq) *\(\+/i, 'ph']];
+  function decorate() {
+    document.querySelectorAll('.section-title, .trend-card h3, .sumcard h4').forEach(el => { const f = el.firstChild; if (!f || f.nodeType !== 3 || el.dataset.em) return; const m = f.nodeValue.match(/^\s*((?:\p{Extended_Pictographic}\uFE0F?\u200D?)+)/u); el.dataset.em = '1'; if (!m) return; const sp = document.createElement('span'); sp.textContent = m[1]; f.nodeValue = f.nodeValue.slice(m[0].length); el.insertBefore(sp, f); });
+    document.querySelectorAll('td, th, span, b, div.stat-title, label').forEach(el => {
+      if (el.dataset.br || el.children.length > 0 && !(el.children.length === 1 && el.children[0].tagName === 'SMALL')) return;
+      const first = el.firstChild; if (!first || first.nodeType !== 3) return;
+      const t = first.nodeValue.trim(); if (!t || t.length > 60) return;
+      for (const [re, k] of rules) if (re.test(t)) { el.dataset.br = '1'; first.nodeValue = ' ' + first.nodeValue.trim(); const w = document.createElement('span'); w.className = 'br'; w.innerHTML = I[k]; el.insertBefore(w, first); return; }
+    });
+  }
+  let tm; const mo = new MutationObserver(() => { clearTimeout(tm); tm = setTimeout(() => { mo.disconnect(); try { decorate(); } finally { mo.observe(document.body, { childList: true, subtree: true }); } }, 120); });
+  mo.observe(document.body, { childList: true, subtree: true });
+  decorate();
 })();
 
 </script>
